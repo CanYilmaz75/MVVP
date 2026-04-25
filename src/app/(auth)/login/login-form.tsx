@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 
 import { createClient } from "@/server/supabase/browser";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { LogoMark } from "@/components/shared/logo";
 
@@ -40,21 +39,26 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="space-y-4">
+    <div className="w-full max-w-md">
+      <div className="space-y-4">
         <div className="flex items-center gap-3">
-          <LogoMark />
+          <LogoMark className="bg-stone-950 text-[hsl(var(--primary-foreground))] shadow-none" />
           <div>
-            <p className="text-sm text-muted-foreground">Umgebungsbasierte klinische Dokumentation</p>
-            <CardTitle className="mt-1">Bei CAREVO anmelden</CardTitle>
+            <p className="text-sm text-muted-foreground">Dokumentation fuer Pflege und Versorgung</p>
+            <h1
+              className="mt-1 text-[2rem] tracking-[-0.04em]"
+              style={{ fontFamily: '"Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif' }}
+            >
+              Bei CAREVO anmelden
+            </h1>
           </div>
         </div>
-        <CardDescription>
+        <p className="max-w-md text-sm leading-6 text-muted-foreground">
           Melden Sie sich mit Ihrem bereitgestellten Konto an, um den Arbeitsbereich Ihrer Organisation zu nutzen.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form className="space-y-4" onSubmit={onSubmit}>
+        </p>
+      </div>
+      <div className="mt-8 border-t border-border/70 pt-8">
+        <form className="space-y-5" onSubmit={onSubmit}>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="email">
               E-Mail
@@ -85,9 +89,11 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
           <Button className="w-full" type="submit" disabled={isPending}>
             {isPending ? "Anmeldung laeuft..." : "Anmelden"}
           </Button>
-          <p className="text-sm text-muted-foreground">Die Passwort-zuruecksetzen-Funktion wird ueber die Supabase-Auth-Konfiguration gesteuert.</p>
+          <p className="text-sm leading-6 text-muted-foreground">
+            Die Passwort-zuruecksetzen-Funktion wird ueber die Supabase-Auth-Konfiguration gesteuert.
+          </p>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

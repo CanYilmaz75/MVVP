@@ -225,7 +225,53 @@ function getSupportedRecordingMimeType(): RecordingMimeType {
   return supported;
 }
 
+function formatSisError(error: unknown, fallback = "Aktion fehlgeschlagen.") {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  if (typeof error === "object" && error !== null) {
+    const candidate = error as {
+      message?: unknown;
+      error?: { message?: unknown } | null;
+      target?: { error?: { message?: unknown } | null } | null;
+      currentTarget?: { error?: { message?: unknown } | null } | null;
+    };
+
+    if (typeof candidate.message === "string" && candidate.message.trim()) {
+      return candidate.message;
+    }
+
+    if (candidate.error && typeof candidate.error.message === "string" && candidate.error.message.trim()) {
+      return candidate.error.message;
+    }
+
+    if (
+      candidate.target?.error &&
+      typeof candidate.target.error.message === "string" &&
+      candidate.target.error.message.trim()
+    ) {
+      return candidate.target.error.message;
+    }
+
+    if (
+      candidate.currentTarget?.error &&
+      typeof candidate.currentTarget.error.message === "string" &&
+      candidate.currentTarget.error.message.trim()
+    ) {
+      return candidate.currentTarget.error.message;
+    }
+  }
+
+  return fallback;
+}
+
 export function SisWorkspace() {
+  const introStepIndex = 0;
+  const recordingStepIndex = 1;
+  const topicStepStart = 2;
+  const riskStepStart = topicStepStart + topicDefinitions.length;
+  const reviewStepIndex = riskStepStart + riskDefinitions.length;
   const [patientReference, setPatientReference] = useState("");
   const [whatMatters, setWhatMatters] = useState("");
   const [topics, setTopics] = useState<TopicMap>(createInitialTopics);
@@ -238,6 +284,7 @@ export function SisWorkspace() {
   const [latestAudioAssetId, setLatestAudioAssetId] = useState<string | null>(null);
   const [sessionStatus, setSessionStatus] = useState("not_started");
   const [activeTopicKey, setActiveTopicKey] = useState<SisTopicKey>("cognition");
+  const [currentStepIndex, setCurrentStepIndex] = useState(introStepIndex);
   const [isRecording, setIsRecording] = useState(false);
   const [busyAction, setBusyAction] = useState<BusyAction>(null);
   const [error, setError] = useState<string | null>(null);
@@ -250,6 +297,10 @@ export function SisWorkspace() {
   const completedTopicCount = useMemo(
     () => topicDefinitions.filter((topic) => hasTopicContent(topics[topic.key])).length,
     [topics]
+  );
+  const reviewedRiskCount = useMemo(
+    () => riskDefinitions.filter((risk) => risks[risk.key].relevant || risks[risk.key].notes.trim() || risks[risk.key].level !== "none").length,
+    [risks]
   );
 
   const relevantRisks = useMemo(
@@ -315,6 +366,15 @@ export function SisWorkspace() {
     return topicDefinitions.find((topic) => !hasTopicContent(topics[topic.key]))?.key ?? activeTopicKey;
   }, [activeTopicKey, topics]);
 
+  const currentTopicIndex =
+    currentStepIndex >= topicStepStart && currentStepIndex < riskStepStart ? currentStepIndex - topicStepStart : -1;
+  const currentRiskIndex =
+    currentStepIndex >= riskStepStart && currentStepIndex < reviewStepIndex ? currentStepIndex - riskStepStart : -1;
+  const currentTopicDefinition = currentTopicIndex >= 0 ? topicDefinitions[currentTopicIndex] : null;
+  const currentRiskDefinition = currentRiskIndex >= 0 ? riskDefinitions[currentRiskIndex] : null;
+  const currentRiskState = currentRiskDefinition ? risks[currentRiskDefinition.key] : null;
+  const totalSteps = reviewStepIndex + 1;
+
   const sisText = useMemo(() => {
     const topicText = topicDefinitions
       .map((topic) => buildTopicSummary(topic.title, topics[topic.key]))
@@ -367,7 +427,7 @@ export function SisWorkspace() {
     try {
       await callback();
     } catch (actionError) {
-      setError(actionError instanceof Error ? actionError.message : "Aktion fehlgeschlagen.");
+      setError(formatSisError(actionError));
     } finally {
       setBusyAction(null);
     }
@@ -482,6 +542,12 @@ export function SisWorkspace() {
           chunksRef.current.push(event.data);
         }
       };
+      recorder.onerror = (event) => {
+        setError(formatSisError(event, "Die Aufnahme konnte nicht gestartet oder fortgesetzt werden."));
+        setBusyAction(null);
+        setIsRecording(false);
+        stream.getTracks().forEach((track) => track.stop());
+      };
       recorder.onstop = async () => {
         try {
           setBusyAction("upload");
@@ -491,7 +557,7 @@ export function SisWorkspace() {
           const audioAssetId = await uploadAudio(session, file, "browser_recording");
           await transcribeAndExtract(session, audioAssetId);
         } catch (recordingError) {
-          setError(recordingError instanceof Error ? recordingError.message : "Aufnahme-Upload fehlgeschlagen.");
+          setError(formatSisError(recordingError, "Aufnahme-Upload fehlgeschlagen."));
         } finally {
           stream.getTracks().forEach((track) => track.stop());
           setBusyAction(null);
@@ -579,6 +645,7 @@ export function SisWorkspace() {
 
     applyExtractedSis(extractPayload.data);
     setSessionStatus("sis_ready");
+    goToStep(topicStepStart);
     setSuccessMessage("SIS wurde aus dem Gespraech strukturiert.");
   }
 
@@ -641,59 +708,95 @@ export function SisWorkspace() {
     setLatestAudioAssetId(null);
     setSessionStatus("not_started");
     setActiveTopicKey("cognition");
+    setCurrentStepIndex(introStepIndex);
     setCopied(false);
     setError(null);
     setSuccessMessage(null);
   }
 
+  function goToStep(stepIndex: number) {
+    const bounded = Math.max(introStepIndex, Math.min(stepIndex, totalSteps - 1));
+    setCurrentStepIndex(bounded);
+
+    if (bounded >= topicStepStart && bounded < riskStepStart) {
+      setActiveTopicKey(topicDefinitions[bounded - topicStepStart]!.key);
+    }
+  }
+
+  function goToNextStep() {
+    goToStep(currentStepIndex + 1);
+  }
+
+  function goToPreviousStep() {
+    goToStep(currentStepIndex - 1);
+  }
+
+  const flowItems = [
+    {
+      stepIndex: introStepIndex,
+      label: "1. Einstieg",
+      description: "Person und Zielbild",
+      done: Boolean(patientReference.trim() || whatMatters.trim())
+    },
+    {
+      stepIndex: recordingStepIndex,
+      label: "2. Gespräch",
+      description: "Aufnahme und Transkript",
+      done: Boolean(transcriptText.trim())
+    },
+    ...topicDefinitions.map((topic, index) => ({
+      stepIndex: topicStepStart + index,
+      label: `${topicStepStart + index + 1}. ${topic.title}`,
+      description: "Themenfeld",
+      done: hasTopicContent(topics[topic.key])
+    })),
+    ...riskDefinitions.map((risk, index) => ({
+      stepIndex: riskStepStart + index,
+      label: `${riskStepStart + index + 1}. ${risk.label}`,
+      description: "Risiko",
+      done: Boolean(risks[risk.key].relevant || risks[risk.key].notes.trim() || risks[risk.key].level !== "none")
+    })),
+    {
+      stepIndex: reviewStepIndex,
+      label: `${reviewStepIndex + 1}. Abschluss`,
+      description: "Review und Export",
+      done: Boolean(evaluationFocus.trim() || copied)
+    }
+  ];
+
   return (
     <div className="space-y-6">
       <Card>
-        <CardContent className="grid gap-5 p-6 xl:grid-cols-[minmax(0,1fr)_420px] xl:items-end">
-          <div className="grid gap-4 md:grid-cols-[240px_minmax(0,1fr)]">
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="patient-reference">
-                Patientenreferenz
-              </label>
-              <Input
-                id="patient-reference"
-                value={patientReference}
-                onChange={(event) => setPatientReference(event.target.value)}
-                placeholder="z. B. Bewohner-104"
-              />
+        <CardContent className="flex flex-col gap-5 p-6 xl:flex-row xl:items-center xl:justify-between">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="text-2xl font-semibold">SIS Schritt für Schritt</h2>
+              <StatusBadge status={sessionStatus} />
+              <Badge variant="primary">
+                Schritt {currentStepIndex + 1} von {totalSteps}
+              </Badge>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="what-matters">
-                Was ist der Person wichtig?
-              </label>
-              <Input
-                id="what-matters"
-                value={whatMatters}
-                onChange={(event) => setWhatMatters(event.target.value)}
-                placeholder="Perspektive, Ziele, Gewohnheiten oder Sorgen der Person"
-              />
+            <div className="flex flex-wrap gap-6 text-sm text-muted-foreground">
+              <span>Themenfelder: {completedTopicCount}/{topicDefinitions.length}</span>
+              <span>Risikoprüfungen: {reviewedRiskCount}/{riskDefinitions.length}</span>
+              <span>Maßnahmenfokus: {measurePlan.length}</span>
             </div>
           </div>
-          <div className="flex flex-wrap gap-3 xl:justify-end">
+          <div className="flex flex-wrap gap-3">
             <Button variant="outline" onClick={resetSis} disabled={busyAction !== null || isRecording}>
               <RotateCcw className="mr-2 h-4 w-4" />
-              Zuruecksetzen
+              Zurücksetzen
             </Button>
-            <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={busyAction !== null || isRecording}>
-              <FileAudio className="mr-2 h-4 w-4" />
-              Audio hochladen
-            </Button>
-            <input ref={fileInputRef} className="hidden" type="file" accept="audio/*" onChange={onFileUpload} />
-            <Button onClick={isRecording ? stopGuidedRecording : startGuidedRecording} disabled={busyAction !== null && busyAction !== "record"}>
-              {busyAction === "record" || busyAction === "upload" ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : isRecording ? (
-                <PauseCircle className="mr-2 h-4 w-4" />
-              ) : (
-                <Mic className="mr-2 h-4 w-4" />
-              )}
-              {isRecording ? "Aufnahme stoppen" : "SIS per Sprache starten"}
-            </Button>
+            {currentStepIndex > introStepIndex ? (
+              <Button variant="outline" onClick={goToPreviousStep} disabled={busyAction !== null}>
+                Zurück
+              </Button>
+            ) : null}
+            {currentStepIndex < reviewStepIndex ? (
+              <Button onClick={goToNextStep} disabled={busyAction !== null}>
+                Weiter
+              </Button>
+            ) : null}
           </div>
         </CardContent>
       </Card>
@@ -703,288 +806,442 @@ export function SisWorkspace() {
         <div className="rounded-2xl border border-success/20 bg-success/5 px-4 py-3 text-sm text-success">{successMessage}</div>
       ) : null}
 
-      <section className="grid gap-4 md:grid-cols-4">
-        <div className="rounded-2xl border bg-card p-5">
-          <p className="text-sm text-muted-foreground">SIS Session</p>
-          <div className="mt-3 flex items-center gap-2">
-            <StatusBadge status={sessionStatus} />
+      <Card className="border-primary/20 bg-primary/[0.03]">
+        <CardContent className="flex flex-col gap-5 p-6 xl:flex-row xl:items-center xl:justify-between">
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-primary">Sprachdokumentation</p>
+            <h3 className="text-xl font-semibold">SIS per Aufnahme starten</h3>
+            <p className="max-w-2xl text-sm text-muted-foreground">
+              Der wichtigste Einstieg ist die Spracheingabe: Gespräch aufnehmen, automatisch transkribieren und daraus
+              die SIS-Struktur vorfüllen. Die manuelle Bearbeitung kommt danach.
+            </p>
           </div>
-        </div>
-        <div className="rounded-2xl border bg-card p-5">
-          <p className="text-sm text-muted-foreground">Themenfelder erfasst</p>
-          <p className="mt-2 text-3xl font-semibold">
-            {completedTopicCount}/{topicDefinitions.length}
-          </p>
-        </div>
-        <div className="rounded-2xl border bg-card p-5">
-          <p className="text-sm text-muted-foreground">Relevante Risiken</p>
-          <p className="mt-2 text-3xl font-semibold">{relevantRisks.length}</p>
-        </div>
-        <div className="rounded-2xl border bg-card p-5">
-          <p className="text-sm text-muted-foreground">Massnahmenfokus</p>
-          <p className="mt-2 text-3xl font-semibold">{measurePlan.length}</p>
-        </div>
-      </section>
-
-      <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)_380px]">
-        <aside className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between gap-3">
-                <CardTitle>Gesprächsführung</CardTitle>
-                {isRecording ? <Badge variant="destructive">Aufnahme laeuft</Badge> : <Badge>Bereit</Badge>}
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="active-topic">
-                  Aktuelles Themenfeld
-                </label>
-                <select
-                  id="active-topic"
-                  className="h-10 w-full rounded-xl border border-input bg-card px-3 text-sm"
-                  value={activeTopicKey}
-                  onChange={(event) => setActiveTopicKey(event.target.value as SisTopicKey)}
-                >
-                  {topicDefinitions.map((topic) => (
-                    <option key={topic.key} value={topic.key}>
-                      {topic.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <p className="text-sm font-medium">Jetzt passende Fragen</p>
-                </div>
-                {guidedQuestions.map((question) => (
-                  <button
-                    key={question}
-                    type="button"
-                    className="w-full rounded-2xl border bg-background p-3 text-left text-sm transition-colors hover:bg-secondary/70"
-                    onClick={() => setLiveNotes((current) => `${current}${current ? "\n" : ""}Gefragt: ${question}`)}
-                  >
-                    {question}
-                  </button>
-                ))}
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="live-notes">
-                  Live-Notizen waehrend des Gespraechs
-                </label>
-                <Textarea
-                  id="live-notes"
-                  className="min-h-[160px]"
-                  value={liveNotes}
-                  onChange={(event) => setLiveNotes(event.target.value)}
-                  placeholder="Kurze Stichworte waehrend der Aufnahme. Diese werden bei der SIS-Auswertung mitberuecksichtigt."
-                />
-              </div>
-
-              {sessionId ? (
-                <Button asChild variant="outline" className="w-full">
-                  <Link href={`/consultations/${sessionId}` as Route}>SIS Audio-Session oeffnen</Link>
-                </Button>
-              ) : null}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Transkript</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {busyAction === "transcribe" || busyAction === "extract" ? (
-                <div className="flex items-center gap-2 rounded-2xl border p-4 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  {busyAction === "transcribe" ? "Transkription laeuft..." : "SIS wird strukturiert..."}
-                </div>
-              ) : transcriptText ? (
-                <div className="max-h-[360px] overflow-auto rounded-2xl bg-secondary/60 p-4">
-                  <p className="whitespace-pre-wrap text-sm leading-6">{transcriptText}</p>
-                </div>
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={busyAction !== null || isRecording}>
+              <FileAudio className="mr-2 h-4 w-4" />
+              Audio hochladen
+            </Button>
+            <Button
+              size="lg"
+              onClick={() => void (isRecording ? stopGuidedRecording() : startGuidedRecording())}
+              disabled={busyAction !== null && busyAction !== "record"}
+            >
+              {busyAction === "record" || busyAction === "upload" ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : isRecording ? (
+                <PauseCircle className="mr-2 h-4 w-4" />
               ) : (
-                <p className="rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">
-                  Nach der Aufnahme erscheint hier das transkribierte SIS-Gespraech.
-                </p>
+                <Mic className="mr-2 h-4 w-4" />
               )}
-            </CardContent>
-          </Card>
+              {isRecording ? "Aufnahme stoppen" : "Aufnahme starten"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-6 xl:grid-cols-[150px_minmax(0,1fr)]">
+        <aside className="xl:sticky xl:top-6 xl:self-start">
+          <div className="space-y-5">
+            <div className="relative">
+              <div className="absolute left-[7px] top-1 bottom-1 w-px bg-border/80" />
+              <div className="space-y-1">
+                {flowItems.map((item) => {
+                  const isCurrent = item.stepIndex === currentStepIndex;
+
+                  return (
+                    <button
+                      key={item.stepIndex}
+                      type="button"
+                      title={`${item.label} - ${item.description}`}
+                      onClick={() => goToStep(item.stepIndex)}
+                      className={`group relative flex w-full items-start gap-2 py-1 text-left transition-colors ${
+                        isCurrent ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <div
+                        className={`relative z-10 mt-1.5 h-3.5 w-3.5 shrink-0 rounded-full border ${
+                          item.done
+                            ? "border-success bg-success"
+                            : isCurrent
+                              ? "border-primary bg-primary"
+                              : "border-border bg-background"
+                        }`}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className={`truncate text-[13px] leading-5 ${isCurrent ? "font-medium" : ""}`}>
+                          {item.label.replace(/^\d+\.\s/, "")}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-1 text-[11px] text-muted-foreground">
+              <p>{patientReference || "Offen"}</p>
+              <p>{transcriptText ? "Transkript da" : "Kein Transkript"}</p>
+              <p>{openQuestions.length} Fragen offen</p>
+            </div>
+
+            {sessionId ? (
+              <Button asChild variant="ghost" className="h-auto w-full justify-start px-0 py-1 text-xs font-normal">
+                <Link href={`/consultations/${sessionId}` as Route}>Session öffnen</Link>
+              </Button>
+            ) : null}
+          </div>
         </aside>
 
         <div className="space-y-6">
-          {topicDefinitions.map((topic) => (
-            <Card key={topic.key} className={topic.key === activeTopicKey ? "ring-2 ring-primary/35" : undefined}>
+          {currentStepIndex === introStepIndex ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Einstieg</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor="patient-reference">
+                      Patientenreferenz
+                    </label>
+                    <Input
+                      id="patient-reference"
+                      value={patientReference}
+                      onChange={(event) => setPatientReference(event.target.value)}
+                      placeholder="z. B. Bewohner-104"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor="what-matters">
+                      Was ist der Person wichtig?
+                    </label>
+                    <Input
+                      id="what-matters"
+                      value={whatMatters}
+                      onChange={(event) => setWhatMatters(event.target.value)}
+                      placeholder="Perspektive, Ziele, Gewohnheiten oder Sorgen der Person"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    size="lg"
+                    onClick={() => void (isRecording ? stopGuidedRecording() : startGuidedRecording())}
+                    disabled={busyAction !== null && busyAction !== "record"}
+                  >
+                    {busyAction === "record" || busyAction === "upload" ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : isRecording ? (
+                      <PauseCircle className="mr-2 h-4 w-4" />
+                    ) : (
+                      <Mic className="mr-2 h-4 w-4" />
+                    )}
+                    {isRecording ? "Aufnahme stoppen" : "Aufnahme starten"}
+                  </Button>
+                  <Button variant="outline" onClick={() => goToStep(recordingStepIndex)} disabled={busyAction !== null}>
+                    Zum Aufnahme-Schritt
+                  </Button>
+                </div>
+                <div className="rounded-xl border bg-secondary/40 p-4 text-sm text-muted-foreground">
+                  Starte mit einem kurzen Bild der Person. Danach führst du das Gespräch, lässt die SIS strukturieren und
+                  arbeitest die Themenfelder nacheinander durch.
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {currentStepIndex === recordingStepIndex ? (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between gap-3">
+                  <CardTitle>Gespräch führen</CardTitle>
+                  {isRecording ? <Badge variant="destructive">Aufnahme läuft</Badge> : <Badge>Bereit</Badge>}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex flex-wrap gap-3">
+                  <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={busyAction !== null || isRecording}>
+                    <FileAudio className="mr-2 h-4 w-4" />
+                    Audio hochladen
+                  </Button>
+                  <input ref={fileInputRef} className="hidden" type="file" accept="audio/*" onChange={onFileUpload} />
+                  <Button
+                    onClick={() => void (isRecording ? stopGuidedRecording() : startGuidedRecording())}
+                    disabled={busyAction !== null && busyAction !== "record"}
+                  >
+                    {busyAction === "record" || busyAction === "upload" ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : isRecording ? (
+                      <PauseCircle className="mr-2 h-4 w-4" />
+                    ) : (
+                      <Mic className="mr-2 h-4 w-4" />
+                    )}
+                    {isRecording ? "Aufnahme stoppen" : "SIS per Sprache starten"}
+                  </Button>
+                </div>
+
+                <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+                  <div className="space-y-4">
+                    <div className="rounded-xl border bg-background p-4">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        <p className="text-sm font-medium">Jetzt passende Fragen</p>
+                      </div>
+                      <div className="mt-3 space-y-2">
+                        {guidedQuestions.map((question) => (
+                          <button
+                            key={question}
+                            type="button"
+                            className="w-full rounded-xl border bg-card p-3 text-left text-sm transition-colors hover:bg-secondary/70"
+                            onClick={() => setLiveNotes((current) => `${current}${current ? "\n" : ""}Gefragt: ${question}`)}
+                          >
+                            {question}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium" htmlFor="live-notes">
+                        Live-Notizen während des Gesprächs
+                      </label>
+                      <Textarea
+                        id="live-notes"
+                        className="min-h-[220px]"
+                        value={liveNotes}
+                        onChange={(event) => setLiveNotes(event.target.value)}
+                        placeholder="Kurze Stichworte während der Aufnahme. Diese fließen in die SIS-Auswertung ein."
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="rounded-xl border bg-background p-4">
+                      <p className="text-sm font-medium">Transkript</p>
+                      {busyAction === "transcribe" || busyAction === "extract" ? (
+                        <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          {busyAction === "transcribe" ? "Transkription läuft..." : "SIS wird strukturiert..."}
+                        </div>
+                      ) : transcriptText ? (
+                        <div className="mt-3 max-h-[420px] overflow-auto rounded-xl bg-secondary/60 p-4">
+                          <p className="whitespace-pre-wrap text-sm leading-6">{transcriptText}</p>
+                        </div>
+                      ) : (
+                        <p className="mt-3 text-sm text-muted-foreground">
+                          Nach der Aufnahme erscheint hier das transkribierte Gespräch.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {currentTopicDefinition ? (
+            <Card>
               <CardHeader>
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                  <CardTitle>{topic.title}</CardTitle>
+                  <div>
+                    <CardTitle>{currentTopicDefinition.title}</CardTitle>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Arbeite dieses Themenfeld jetzt fertig durch. Danach geht es direkt zum nächsten Abschnitt.
+                    </p>
+                  </div>
                   <div className="flex flex-wrap gap-2">
-                    {topic.prompts.map((prompt) => (
+                    {currentTopicDefinition.prompts.map((prompt) => (
                       <Badge key={prompt}>{prompt}</Badge>
                     ))}
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor={`${topic.key}-person`}>
-                    Individuelle Sichtweise
-                  </label>
-                  <Textarea
-                    id={`${topic.key}-person`}
-                    value={topics[topic.key].personView}
-                    onChange={(event) => updateTopic(topic.key, "personView", event.target.value)}
-                    placeholder="Was schildert die Person selbst? Was ist ihr wichtig?"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor={`${topic.key}-observation`}>
-                    Fachliche Einschaetzung
-                  </label>
-                  <Textarea
-                    id={`${topic.key}-observation`}
-                    value={topics[topic.key].observation}
-                    onChange={(event) => updateTopic(topic.key, "observation", event.target.value)}
-                    placeholder="Beobachtungen, Pflegeanlass, relevante Belastungen"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor={`${topic.key}-resources`}>
-                    Ressourcen
-                  </label>
-                  <Textarea
-                    id={`${topic.key}-resources`}
-                    value={topics[topic.key].resources}
-                    onChange={(event) => updateTopic(topic.key, "resources", event.target.value)}
-                    placeholder="Was gelingt selbststaendig? Welche Hilfen funktionieren?"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor={`${topic.key}-support`}>
-                    Unterstuetzungsbedarf / Massnahmenhinweis
-                  </label>
-                  <Textarea
-                    id={`${topic.key}-support`}
-                    value={topics[topic.key].supportNeeds}
-                    onChange={(event) => updateTopic(topic.key, "supportNeeds", event.target.value)}
-                    placeholder="Konkrete Unterstuetzung, je Zeile ein Fokus fuer die Massnahmenplanung"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <aside className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <ShieldAlert className="h-5 w-5 text-warning" />
-                <CardTitle>Risikoeinschaetzung</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {riskDefinitions.map((risk) => {
-                const state = risks[risk.key];
-
-                return (
-                  <div key={risk.key} className="space-y-3 rounded-2xl border p-4">
-                    <label className="flex items-center gap-3 text-sm font-medium">
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 rounded border-input accent-primary"
-                        checked={state.relevant}
-                        onChange={(event) =>
-                          updateRisk(risk.key, {
-                            relevant: event.target.checked,
-                            level: event.target.checked ? "monitor" : "none"
-                          })
-                        }
-                      />
-                      {risk.label}
-                    </label>
-                    <div className="grid gap-2">
-                      {(["monitor", "action"] as SisRiskLevel[]).map((level) => (
-                        <label key={level} className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <input
-                            type="radio"
-                            className="h-4 w-4 accent-primary"
-                            checked={state.level === level}
-                            disabled={!state.relevant}
-                            onChange={() => updateRisk(risk.key, { level })}
-                          />
-                          {riskLevelLabels[level]}
-                        </label>
-                      ))}
-                    </div>
-                    <Textarea
-                      className="min-h-[84px]"
-                      value={state.notes}
-                      disabled={!state.relevant}
-                      onChange={(event) => updateRisk(risk.key, { notes: event.target.value })}
-                      placeholder={risk.actionHint}
-                    />
-                  </div>
-                );
-              })}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Massnahmenplanung</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {measurePlan.length ? (
-                <div className="space-y-3">
-                  {measurePlan.map((measure, index) => (
-                    <div key={`${measure.source}-${index}`} className="rounded-2xl border bg-background p-3">
-                      <p className="text-xs font-medium text-muted-foreground">{measure.source}</p>
-                      <p className="mt-1 text-sm">{measure.text}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">
-                  Die Massnahmenplanung fuellt sich aus Unterstuetzungsbedarfen und relevanten Risiken.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Berichteblatt & Evaluation</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Textarea
-                value={evaluationFocus}
-                onChange={(event) => setEvaluationFocus(event.target.value)}
-                placeholder="Welche Abweichungen, Veraenderungen oder Evaluationspunkte sollen gezielt beobachtet werden?"
-              />
-              {openQuestions.length ? (
-                <div className="rounded-2xl border bg-background p-4">
-                  <p className="text-sm font-medium">Offene Fragen</p>
-                  <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
-                    {openQuestions.map((question) => (
+              <CardContent className="space-y-6">
+                <div className="rounded-xl border bg-secondary/40 p-4">
+                  <p className="text-sm font-medium">Leitfragen</p>
+                  <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                    {currentTopicDefinition.guideQuestions.map((question) => (
                       <li key={question}>{question}</li>
                     ))}
                   </ul>
                 </div>
-              ) : null}
-              <div className="rounded-2xl bg-secondary/60 p-4">
-                <pre className="whitespace-pre-wrap font-sans text-sm leading-6">{sisText}</pre>
-              </div>
-              <Button onClick={copySisText} className="w-full">
-                {copied ? <Check className="mr-2 h-4 w-4" /> : <ClipboardCopy className="mr-2 h-4 w-4" />}
-                {copied ? "Kopiert" : "SIS kopieren"}
-              </Button>
-            </CardContent>
-          </Card>
-        </aside>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor={`${currentTopicDefinition.key}-person`}>
+                      Individuelle Sichtweise
+                    </label>
+                    <Textarea
+                      id={`${currentTopicDefinition.key}-person`}
+                      value={topics[currentTopicDefinition.key].personView}
+                      onChange={(event) => updateTopic(currentTopicDefinition.key, "personView", event.target.value)}
+                      placeholder="Was schildert die Person selbst? Was ist ihr wichtig?"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor={`${currentTopicDefinition.key}-observation`}>
+                      Fachliche Einschätzung
+                    </label>
+                    <Textarea
+                      id={`${currentTopicDefinition.key}-observation`}
+                      value={topics[currentTopicDefinition.key].observation}
+                      onChange={(event) => updateTopic(currentTopicDefinition.key, "observation", event.target.value)}
+                      placeholder="Beobachtungen, Pflegeanlass, relevante Belastungen"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor={`${currentTopicDefinition.key}-resources`}>
+                      Ressourcen
+                    </label>
+                    <Textarea
+                      id={`${currentTopicDefinition.key}-resources`}
+                      value={topics[currentTopicDefinition.key].resources}
+                      onChange={(event) => updateTopic(currentTopicDefinition.key, "resources", event.target.value)}
+                      placeholder="Was gelingt selbstständig? Welche Hilfen funktionieren?"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor={`${currentTopicDefinition.key}-support`}>
+                      Unterstützungsbedarf / Maßnahmenhinweis
+                    </label>
+                    <Textarea
+                      id={`${currentTopicDefinition.key}-support`}
+                      value={topics[currentTopicDefinition.key].supportNeeds}
+                      onChange={(event) => updateTopic(currentTopicDefinition.key, "supportNeeds", event.target.value)}
+                      placeholder="Konkrete Unterstützung, je Zeile ein Fokus für die Maßnahmenplanung"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {currentRiskDefinition && currentRiskState ? (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <ShieldAlert className="h-5 w-5 text-warning" />
+                  <CardTitle>{currentRiskDefinition.label}</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="rounded-xl border bg-secondary/40 p-4 text-sm text-muted-foreground">
+                  <p className="font-medium text-foreground">Leitfrage</p>
+                  <p className="mt-2">{currentRiskDefinition.guideQuestion}</p>
+                </div>
+
+                <label className="flex items-center gap-3 text-sm font-medium">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-input accent-primary"
+                    checked={currentRiskState.relevant}
+                    onChange={(event) =>
+                      updateRisk(currentRiskDefinition.key, {
+                        relevant: event.target.checked,
+                        level: event.target.checked ? "monitor" : "none"
+                      })
+                    }
+                  />
+                  Risiko im Gespräch relevant
+                </label>
+
+                <div className="grid gap-2 rounded-xl border bg-background p-4">
+                  {(["monitor", "action"] as SisRiskLevel[]).map((level) => (
+                    <label key={level} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <input
+                        type="radio"
+                        className="h-4 w-4 accent-primary"
+                        checked={currentRiskState.level === level}
+                        disabled={!currentRiskState.relevant}
+                        onChange={() => updateRisk(currentRiskDefinition.key, { level })}
+                      />
+                      {riskLevelLabels[level]}
+                    </label>
+                  ))}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor={`${currentRiskDefinition.key}-notes`}>
+                    Einschätzung / Maßnahmenhinweis
+                  </label>
+                  <Textarea
+                    id={`${currentRiskDefinition.key}-notes`}
+                    className="min-h-[120px]"
+                    value={currentRiskState.notes}
+                    disabled={!currentRiskState.relevant}
+                    onChange={(event) => updateRisk(currentRiskDefinition.key, { notes: event.target.value })}
+                    placeholder={currentRiskDefinition.actionHint}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {currentStepIndex === reviewStepIndex ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Abschluss</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium" htmlFor="evaluation-focus">
+                        Berichteblatt & Evaluation
+                      </label>
+                      <Textarea
+                        id="evaluation-focus"
+                        value={evaluationFocus}
+                        onChange={(event) => setEvaluationFocus(event.target.value)}
+                        placeholder="Welche Abweichungen, Veränderungen oder Evaluationspunkte sollen gezielt beobachtet werden?"
+                      />
+                    </div>
+
+                    <div className="rounded-xl bg-secondary/60 p-4">
+                      <pre className="whitespace-pre-wrap font-sans text-sm leading-6">{sisText}</pre>
+                    </div>
+
+                    <Button onClick={copySisText}>
+                      {copied ? <Check className="mr-2 h-4 w-4" /> : <ClipboardCopy className="mr-2 h-4 w-4" />}
+                      {copied ? "Kopiert" : "SIS kopieren"}
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="rounded-xl border bg-background p-4">
+                      <p className="text-sm font-medium">Maßnahmenplanung</p>
+                      {measurePlan.length ? (
+                        <div className="mt-3 space-y-3">
+                          {measurePlan.map((measure, index) => (
+                            <div key={`${measure.source}-${index}`} className="rounded-xl border bg-card p-3">
+                              <p className="text-xs font-medium text-muted-foreground">{measure.source}</p>
+                              <p className="mt-1 text-sm">{measure.text}</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="mt-3 text-sm text-muted-foreground">Noch keine Maßnahmen abgeleitet.</p>
+                      )}
+                    </div>
+
+                    <div className="rounded-xl border bg-background p-4">
+                      <p className="text-sm font-medium">Offene Fragen</p>
+                      {openQuestions.length ? (
+                        <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                          {openQuestions.map((question) => (
+                            <li key={question}>{question}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="mt-3 text-sm text-muted-foreground">Keine offenen Fragen mehr.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+        </div>
       </div>
     </div>
   );

@@ -72,7 +72,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
       />
       <div className="flex min-h-screen flex-1 flex-col">
         <AppHeader title={pageMeta.title} subtitle={pageMeta.subtitle} />
-        <main className="flex-1 px-6 py-8">{children}</main>
+        <main className="mx-auto flex w-full max-w-7xl flex-1 px-6 py-8 sm:px-8 lg:px-10">{children}</main>
       </div>
     </div>
   );

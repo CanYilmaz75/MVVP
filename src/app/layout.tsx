@@ -4,12 +4,12 @@ import "@/app/globals.css";
 
 export const metadata: Metadata = {
   title: "CAREVO",
-  description: "Ambient clinical documentation for physician workflows."
+  description: "CAREVO ist eine deutschsprachige Anwendung fuer klinische und pflegerische Dokumentation."
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="de">
       <body>{children}</body>
     </html>
   );

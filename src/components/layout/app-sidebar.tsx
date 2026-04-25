@@ -27,24 +27,26 @@ export function AppSidebar({
   userName: string;
 }) {
   return (
-    <aside className="hidden w-72 flex-col border-r bg-card px-5 py-6 lg:flex">
+    <aside className="hidden w-72 flex-col border-r border-border/70 bg-[#f3ece2] px-6 py-8 lg:flex">
       <div className="flex items-center gap-3">
-        <LogoMark />
+        <LogoMark className="bg-stone-950 text-[hsl(var(--primary-foreground))] shadow-none" />
         <div>
-          <p className="text-sm font-medium text-muted-foreground">Umgebungsbasierte klinische Dokumentation</p>
-          <p className="text-lg font-semibold">CAREVO</p>
+          <p className="text-sm font-medium text-muted-foreground">Dokumentation fuer Pflege und Versorgung</p>
+          <p className="text-lg font-semibold tracking-[-0.02em]">CAREVO</p>
         </div>
       </div>
 
-      <nav className="mt-8 flex flex-1 flex-col gap-1">
+      <nav className="mt-12 flex flex-1 flex-col gap-1">
         {items.map(({ href, label, icon: Icon }) => {
           const isActive = currentPath === href || currentPath.startsWith(`${href}/`);
           return (
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
-                isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              className={`flex items-center gap-3 border-l-2 px-4 py-3 text-sm font-medium transition-colors ${
+                isActive
+                  ? "border-stone-950 text-stone-950"
+                  : "border-transparent text-muted-foreground hover:border-border hover:text-foreground"
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -54,7 +56,7 @@ export function AppSidebar({
         })}
 
         {pausedConsultations.length ? (
-          <div className="mt-5 space-y-2 border-t pt-5">
+          <div className="mt-8 space-y-1 border-t border-border/70 pt-6">
             <div className="flex items-center gap-2 px-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
               <PauseCircle className="h-3.5 w-3.5" />
               Unterbrochen
@@ -63,7 +65,7 @@ export function AppSidebar({
               <Link
                 key={consultation.id}
                 href={`/consultations/${consultation.id}` as Route}
-                className="block rounded-xl px-4 py-3 text-sm transition-colors hover:bg-secondary"
+                className="block border-l-2 border-transparent px-4 py-3 text-sm transition-colors hover:border-border hover:text-foreground"
               >
                 <p className="truncate font-medium">{consultation.patient_reference}</p>
                 <p className="mt-1 truncate text-xs text-muted-foreground">{consultation.specialty}</p>
@@ -73,7 +75,7 @@ export function AppSidebar({
         ) : null}
       </nav>
 
-      <div className="space-y-4 rounded-2xl border bg-background p-4">
+      <div className="space-y-4 border-t border-border/70 pt-6">
         <div className="space-y-1">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Organisation</p>
           <p className="font-medium">{organisationName}</p>
@@ -83,7 +85,7 @@ export function AppSidebar({
           <p className="font-medium">{userName}</p>
         </div>
         <form action="/api/auth/signout" method="post">
-          <Button type="submit" variant="outline" className="w-full">
+          <Button type="submit" variant="ghost" className="w-full justify-start px-0">
             Abmelden
           </Button>
         </form>
