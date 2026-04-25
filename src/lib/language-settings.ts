@@ -1,0 +1,70 @@
+export const LANGUAGE_DETECT_VALUE = "auto";
+
+const languageLabels: Record<string, string> = {
+  auto: "Sprache erkennen",
+  af: "Afrikaans",
+  ar: "Arabisch",
+  hy: "Armenisch",
+  az: "Aserbaidschanisch",
+  be: "Weißrussisch",
+  bs: "Bosnisch",
+  bg: "Bulgarisch",
+  ca: "Katalanisch",
+  zh: "Chinesisch",
+  hr: "Kroatisch",
+  cs: "Tschechisch",
+  da: "Dänisch",
+  nl: "Niederländisch",
+  en: "Englisch",
+  et: "Estnisch",
+  fi: "Finnisch",
+  fr: "Französisch",
+  gl: "Galicisch",
+  de: "Deutsch",
+  el: "Griechisch",
+  he: "Hebräisch",
+  hi: "Hindi",
+  hu: "Ungarisch",
+  is: "Isländisch",
+  id: "Indonesisch",
+  it: "Italienisch",
+  ja: "Japanisch",
+  kn: "Kannada",
+  kk: "Kasachisch",
+  ko: "Koreanisch",
+  lv: "Lettisch",
+  lt: "Litauisch",
+  mk: "Mazedonisch",
+  ms: "Malaiisch",
+  mr: "Marathi",
+  mi: "Maori",
+  ne: "Nepalesisch",
+  no: "Norwegisch",
+  fa: "Persisch",
+  pl: "Polnisch",
+  pt: "Portugiesisch",
+  ro: "Rumänisch",
+  ru: "Russisch",
+  sr: "Serbisch",
+  sk: "Slowakisch",
+  sl: "Slowenisch",
+  es: "Spanisch",
+  sw: "Swahili",
+  sv: "Schwedisch",
+  tl: "Tagalog",
+  ta: "Tamil",
+  th: "Thailändisch",
+  tr: "Türkisch",
+  uk: "Ukrainisch",
+  ur: "Urdu",
+  vi: "Vietnamesisch",
+  cy: "Walisisch"
+};
+
+export function languageLabel(value: string | null | undefined) {
+  if (!value) {
+    return "Nicht erkannt";
+  }
+
+  return languageLabels[value.toLowerCase()] ?? value;
+}
