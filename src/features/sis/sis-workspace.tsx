@@ -23,7 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createClient } from "@/server/supabase/browser";
-import type { SisAssessment, SisRiskKey, SisRiskLevel, SisTopicKey } from "@/schemas/sis";
+import type { SisAssessment, SisFieldReview, SisRiskKey, SisRiskLevel, SisTopicKey } from "@/schemas/sis";
 
 type TopicState = {
   personView: string;
@@ -38,6 +38,9 @@ type RiskState = {
 };
 type TopicMap = Record<SisTopicKey, TopicState>;
 type RiskMap = Record<SisRiskKey, RiskState>;
+type TopicReviewMap = NonNullable<SisAssessment["review"]>["topics"];
+type RiskReviewMap = NonNullable<SisAssessment["review"]>["risks"];
+type ReviewState = NonNullable<SisAssessment["review"]>;
 type BusyAction = "create-session" | "record" | "upload" | "transcribe" | "extract" | "save" | "load" | null;
 type RecordingMimeType = "audio/webm" | "audio/mp4" | "audio/wav";
 type PersistedSisPayload = {
@@ -164,6 +167,14 @@ const emptyTopic: TopicState = {
   supportNeeds: ""
 };
 
+function emptyFieldReview(needsReview = false): SisFieldReview {
+  return {
+    evidence: [],
+    confidence: "unknown",
+    needsReview
+  };
+}
+
 function createInitialTopics(): TopicMap {
   return Object.fromEntries(topicDefinitions.map((topic) => [topic.key, { ...emptyTopic }])) as TopicMap;
 }
@@ -179,6 +190,34 @@ function createInitialRisks(): RiskMap {
       }
     ])
   ) as RiskMap;
+}
+
+function createInitialReview(): ReviewState {
+  return {
+    whatMatters: emptyFieldReview(false),
+    evaluationFocus: emptyFieldReview(false),
+    topics: Object.fromEntries(
+      topicDefinitions.map((topic) => [
+        topic.key,
+        {
+          personView: emptyFieldReview(false),
+          observation: emptyFieldReview(false),
+          resources: emptyFieldReview(false),
+          supportNeeds: emptyFieldReview(false)
+        }
+      ])
+    ) as TopicReviewMap,
+    risks: Object.fromEntries(
+      riskDefinitions.map((risk) => [
+        risk.key,
+        {
+          relevant: emptyFieldReview(false),
+          level: emptyFieldReview(false),
+          notes: emptyFieldReview(false)
+        }
+      ])
+    ) as RiskReviewMap
+  };
 }
 
 function splitLines(value: string) {
@@ -259,6 +298,59 @@ function formatSisError(error: unknown, fallback = "Aktion fehlgeschlagen.") {
   return fallback;
 }
 
+function confidenceLabel(confidence: SisFieldReview["confidence"]) {
+  switch (confidence) {
+    case "high":
+      return "hoch";
+    case "medium":
+      return "mittel";
+    case "low":
+      return "niedrig";
+    default:
+      return "unklar";
+  }
+}
+
+function confidenceVariant(review: SisFieldReview) {
+  if (review.needsReview) {
+    return "warning" as const;
+  }
+
+  if (review.confidence === "high") {
+    return "success" as const;
+  }
+
+  return "default" as const;
+}
+
+function FieldReviewPanel({ review, onReviewed }: { review: SisFieldReview; onReviewed: () => void }) {
+  const hasEvidence = review.evidence.length > 0;
+
+  return (
+    <div className="rounded-xl border bg-background p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant={confidenceVariant(review)}>Confidence: {confidenceLabel(review.confidence)}</Badge>
+        {review.needsReview ? <Badge variant="warning">Review nötig</Badge> : <Badge variant="success">Geprüft</Badge>}
+        {hasEvidence ? <Badge>{review.evidence.length} Quelle(n)</Badge> : <Badge variant="warning">Keine Evidenz</Badge>}
+      </div>
+      {hasEvidence ? (
+        <div className="mt-3 space-y-2">
+          {review.evidence.slice(0, 3).map((evidence, index) => (
+            <p key={`${evidence}-${index}`} className="rounded-lg bg-secondary/60 px-3 py-2 text-xs leading-5 text-muted-foreground">
+              {evidence}
+            </p>
+          ))}
+        </div>
+      ) : null}
+      {review.needsReview ? (
+        <Button type="button" variant="outline" className="mt-3 h-8 text-xs" onClick={onReviewed}>
+          Feld geprüft
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
 export function SisWorkspace({
   capabilities
 }: {
@@ -278,6 +370,7 @@ export function SisWorkspace({
   const [whatMatters, setWhatMatters] = useState("");
   const [topics, setTopics] = useState<TopicMap>(createInitialTopics);
   const [risks, setRisks] = useState<RiskMap>(createInitialRisks);
+  const [review, setReview] = useState<ReviewState>(createInitialReview);
   const [evaluationFocus, setEvaluationFocus] = useState("");
   const [openQuestions, setOpenQuestions] = useState<string[]>([]);
   const [liveNotes, setLiveNotes] = useState("");
@@ -316,6 +409,28 @@ export function SisWorkspace({
         .filter((risk) => risk.state.relevant),
     [risks]
   );
+  const reviewStats = useMemo(() => {
+    const fields: SisFieldReview[] = [
+      review.whatMatters,
+      review.evaluationFocus,
+      ...topicDefinitions.flatMap((topic) => [
+        review.topics[topic.key]!.personView,
+        review.topics[topic.key]!.observation,
+        review.topics[topic.key]!.resources,
+        review.topics[topic.key]!.supportNeeds
+      ]),
+      ...riskDefinitions.flatMap((risk) => [
+        review.risks[risk.key]!.relevant,
+        review.risks[risk.key]!.level,
+        review.risks[risk.key]!.notes
+      ])
+    ];
+
+    return {
+      needsReview: fields.filter((field) => field.needsReview).length,
+      evidenceBacked: fields.filter((field) => field.evidence.length > 0).length
+    };
+  }, [review]);
 
   const measurePlan = useMemo(() => {
     const topicMeasures = topicDefinitions.flatMap((topic) =>
@@ -431,7 +546,8 @@ export function SisWorkspace({
       topics,
       risks,
       evaluationFocus,
-      openQuestions
+      openQuestions,
+      review
     };
   }
 
@@ -442,6 +558,7 @@ export function SisWorkspace({
     setWhatMatters(payload.assessment.whatMatters);
     setTopics(payload.assessment.topics as TopicMap);
     setRisks(payload.assessment.risks as RiskMap);
+    setReview(payload.assessment.review ?? createInitialReview());
     setEvaluationFocus(payload.assessment.evaluationFocus);
     setOpenQuestions(payload.assessment.openQuestions);
     setTranscriptText(payload.transcriptText ?? "");
@@ -805,6 +922,20 @@ export function SisWorkspace({
         [field]: value
       }
     }));
+    setReview((current) => ({
+      ...current,
+      topics: {
+        ...current.topics,
+        [topicKey]: {
+          ...current.topics[topicKey]!,
+          [field]: {
+            ...current.topics[topicKey]![field],
+            needsReview: Boolean(value.trim()),
+            confidence: "unknown"
+          }
+        }
+      }
+    }));
   }
 
   function updateRisk(riskKey: SisRiskKey, patch: Partial<RiskState>) {
@@ -815,6 +946,101 @@ export function SisWorkspace({
         ...patch
       }
     }));
+    setReview((current) => ({
+      ...current,
+      risks: {
+        ...current.risks,
+        [riskKey]: {
+          ...current.risks[riskKey]!,
+          ...Object.fromEntries(
+            Object.keys(patch).map((field) => [
+              field,
+              {
+                ...current.risks[riskKey]![field as keyof RiskState],
+                needsReview: true,
+                confidence: "unknown"
+              }
+            ])
+          )
+        }
+      }
+    }));
+  }
+
+  function updateWhatMatters(value: string) {
+    setWhatMatters(value);
+    setReview((current) => ({
+      ...current,
+      whatMatters: {
+        ...current.whatMatters,
+        needsReview: Boolean(value.trim()),
+        confidence: "unknown"
+      }
+    }));
+  }
+
+  function updateEvaluationFocus(value: string) {
+    setEvaluationFocus(value);
+    setReview((current) => ({
+      ...current,
+      evaluationFocus: {
+        ...current.evaluationFocus,
+        needsReview: Boolean(value.trim()),
+        confidence: "unknown"
+      }
+    }));
+  }
+
+  function markReviewed(kind: "whatMatters" | "evaluationFocus" | "topic" | "risk", key?: string, field?: string) {
+    setReview((current) => {
+      if (kind === "whatMatters" || kind === "evaluationFocus") {
+        return {
+          ...current,
+          [kind]: {
+            ...current[kind],
+            needsReview: false
+          }
+        };
+      }
+
+      if (kind === "topic" && key && field) {
+        const topicKey = key as SisTopicKey;
+        const topicField = field as keyof TopicState;
+        return {
+          ...current,
+          topics: {
+            ...current.topics,
+            [topicKey]: {
+              ...current.topics[topicKey]!,
+              [topicField]: {
+                ...current.topics[topicKey]![topicField],
+                needsReview: false
+              }
+            }
+          }
+        };
+      }
+
+      if (kind === "risk" && key && field) {
+        const riskKey = key as SisRiskKey;
+        const riskField = field as keyof RiskState;
+        return {
+          ...current,
+          risks: {
+            ...current.risks,
+            [riskKey]: {
+              ...current.risks[riskKey]!,
+              [riskField]: {
+                ...current.risks[riskKey]![riskField],
+                needsReview: false
+              }
+            }
+          }
+        };
+      }
+
+      return current;
+    });
   }
 
   async function copySisText() {
@@ -828,6 +1054,7 @@ export function SisWorkspace({
     setWhatMatters("");
     setTopics(createInitialTopics());
     setRisks(createInitialRisks());
+    setReview(createInitialReview());
     setEvaluationFocus("");
     setOpenQuestions([]);
     setLiveNotes("");
@@ -911,6 +1138,8 @@ export function SisWorkspace({
               <span>Themenfelder: {completedTopicCount}/{topicDefinitions.length}</span>
               <span>Risikoprüfungen: {reviewedRiskCount}/{riskDefinitions.length}</span>
               <span>Maßnahmenfokus: {measurePlan.length}</span>
+              <span>Review offen: {reviewStats.needsReview}</span>
+              <span>Mit Evidenz: {reviewStats.evidenceBacked}</span>
             </div>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -1065,9 +1294,10 @@ export function SisWorkspace({
                     <Input
                       id="what-matters"
                       value={whatMatters}
-                      onChange={(event) => setWhatMatters(event.target.value)}
+                      onChange={(event) => updateWhatMatters(event.target.value)}
                       placeholder="Perspektive, Ziele, Gewohnheiten oder Sorgen der Person"
                     />
+                    <FieldReviewPanel review={review.whatMatters} onReviewed={() => markReviewed("whatMatters")} />
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -1223,6 +1453,10 @@ export function SisWorkspace({
                       onChange={(event) => updateTopic(currentTopicDefinition.key, "personView", event.target.value)}
                       placeholder="Was schildert die Person selbst? Was ist ihr wichtig?"
                     />
+                    <FieldReviewPanel
+                      review={review.topics[currentTopicDefinition.key]!.personView}
+                      onReviewed={() => markReviewed("topic", currentTopicDefinition.key, "personView")}
+                    />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium" htmlFor={`${currentTopicDefinition.key}-observation`}>
@@ -1233,6 +1467,10 @@ export function SisWorkspace({
                       value={topics[currentTopicDefinition.key].observation}
                       onChange={(event) => updateTopic(currentTopicDefinition.key, "observation", event.target.value)}
                       placeholder="Beobachtungen, Pflegeanlass, relevante Belastungen"
+                    />
+                    <FieldReviewPanel
+                      review={review.topics[currentTopicDefinition.key]!.observation}
+                      onReviewed={() => markReviewed("topic", currentTopicDefinition.key, "observation")}
                     />
                   </div>
                   <div className="space-y-2">
@@ -1245,6 +1483,10 @@ export function SisWorkspace({
                       onChange={(event) => updateTopic(currentTopicDefinition.key, "resources", event.target.value)}
                       placeholder="Was gelingt selbstständig? Welche Hilfen funktionieren?"
                     />
+                    <FieldReviewPanel
+                      review={review.topics[currentTopicDefinition.key]!.resources}
+                      onReviewed={() => markReviewed("topic", currentTopicDefinition.key, "resources")}
+                    />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium" htmlFor={`${currentTopicDefinition.key}-support`}>
@@ -1255,6 +1497,10 @@ export function SisWorkspace({
                       value={topics[currentTopicDefinition.key].supportNeeds}
                       onChange={(event) => updateTopic(currentTopicDefinition.key, "supportNeeds", event.target.value)}
                       placeholder="Konkrete Unterstützung, je Zeile ein Fokus für die Maßnahmenplanung"
+                    />
+                    <FieldReviewPanel
+                      review={review.topics[currentTopicDefinition.key]!.supportNeeds}
+                      onReviewed={() => markReviewed("topic", currentTopicDefinition.key, "supportNeeds")}
                     />
                   </div>
                 </div>
@@ -1290,6 +1536,10 @@ export function SisWorkspace({
                   />
                   Risiko im Gespräch relevant
                 </label>
+                <FieldReviewPanel
+                  review={review.risks[currentRiskDefinition.key]!.relevant}
+                  onReviewed={() => markReviewed("risk", currentRiskDefinition.key, "relevant")}
+                />
 
                 <div className="grid gap-2 rounded-xl border bg-background p-4">
                   {(["monitor", "action"] as SisRiskLevel[]).map((level) => (
@@ -1305,6 +1555,10 @@ export function SisWorkspace({
                     </label>
                   ))}
                 </div>
+                <FieldReviewPanel
+                  review={review.risks[currentRiskDefinition.key]!.level}
+                  onReviewed={() => markReviewed("risk", currentRiskDefinition.key, "level")}
+                />
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium" htmlFor={`${currentRiskDefinition.key}-notes`}>
@@ -1317,6 +1571,10 @@ export function SisWorkspace({
                     disabled={!currentRiskState.relevant}
                     onChange={(event) => updateRisk(currentRiskDefinition.key, { notes: event.target.value })}
                     placeholder={currentRiskDefinition.actionHint}
+                  />
+                  <FieldReviewPanel
+                    review={review.risks[currentRiskDefinition.key]!.notes}
+                    onReviewed={() => markReviewed("risk", currentRiskDefinition.key, "notes")}
                   />
                 </div>
               </CardContent>
@@ -1338,9 +1596,10 @@ export function SisWorkspace({
                       <Textarea
                         id="evaluation-focus"
                         value={evaluationFocus}
-                        onChange={(event) => setEvaluationFocus(event.target.value)}
+                        onChange={(event) => updateEvaluationFocus(event.target.value)}
                         placeholder="Welche Abweichungen, Veränderungen oder Evaluationspunkte sollen gezielt beobachtet werden?"
                       />
+                      <FieldReviewPanel review={review.evaluationFocus} onReviewed={() => markReviewed("evaluationFocus")} />
                     </div>
 
                     <div className="rounded-xl bg-secondary/60 p-4">

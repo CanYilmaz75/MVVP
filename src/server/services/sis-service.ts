@@ -6,6 +6,7 @@ import {
   sisAssessmentJsonSchema,
   sisAssessmentSchema,
   type SisAssessment,
+  type SisFieldReview,
   type SisRisk,
   type SisRiskKey,
   type SisTopic,
@@ -55,14 +56,87 @@ function emptyAssessment(patientReference = ""): SisAssessment {
       ])
     ) as SisAssessment["risks"],
     evaluationFocus: "",
-    openQuestions: []
+    openQuestions: [],
+    review: emptyAssessmentReview()
+  };
+}
+
+function emptyFieldReview(): SisFieldReview {
+  return {
+    evidence: [],
+    confidence: "unknown",
+    needsReview: true
+  };
+}
+
+function reviewForValue(value: unknown): SisFieldReview {
+  return {
+    evidence: [],
+    confidence: value ? "unknown" : "unknown",
+    needsReview: Boolean(value)
+  };
+}
+
+function emptyAssessmentReview(): NonNullable<SisAssessment["review"]> {
+  return {
+    whatMatters: emptyFieldReview(),
+    evaluationFocus: emptyFieldReview(),
+    topics: Object.fromEntries(
+      topicKeys.map((key) => [
+        key,
+        {
+          personView: emptyFieldReview(),
+          observation: emptyFieldReview(),
+          resources: emptyFieldReview(),
+          supportNeeds: emptyFieldReview()
+        }
+      ])
+    ) as NonNullable<SisAssessment["review"]>["topics"],
+    risks: Object.fromEntries(
+      riskKeys.map((key) => [
+        key,
+        {
+          relevant: emptyFieldReview(),
+          level: emptyFieldReview(),
+          notes: emptyFieldReview()
+        }
+      ])
+    ) as NonNullable<SisAssessment["review"]>["risks"]
+  };
+}
+
+function mergeReviewWithDefaults(candidate: Partial<NonNullable<SisAssessment["review"]>> | undefined, assessment: Partial<SisAssessment>) {
+  return {
+    whatMatters: candidate?.whatMatters ?? reviewForValue(assessment.whatMatters),
+    evaluationFocus: candidate?.evaluationFocus ?? reviewForValue(assessment.evaluationFocus),
+    topics: Object.fromEntries(
+      topicKeys.map((key) => [
+        key,
+        {
+          personView: candidate?.topics?.[key]?.personView ?? reviewForValue(assessment.topics?.[key]?.personView),
+          observation: candidate?.topics?.[key]?.observation ?? reviewForValue(assessment.topics?.[key]?.observation),
+          resources: candidate?.topics?.[key]?.resources ?? reviewForValue(assessment.topics?.[key]?.resources),
+          supportNeeds: candidate?.topics?.[key]?.supportNeeds ?? reviewForValue(assessment.topics?.[key]?.supportNeeds)
+        }
+      ])
+    ) as NonNullable<SisAssessment["review"]>["topics"],
+    risks: Object.fromEntries(
+      riskKeys.map((key) => [
+        key,
+        {
+          relevant: candidate?.risks?.[key]?.relevant ?? reviewForValue(assessment.risks?.[key]?.relevant),
+          level: candidate?.risks?.[key]?.level ?? reviewForValue(assessment.risks?.[key]?.level !== "none"),
+          notes: candidate?.risks?.[key]?.notes ?? reviewForValue(assessment.risks?.[key]?.notes)
+        }
+      ])
+    ) as NonNullable<SisAssessment["review"]>["risks"]
   };
 }
 
 function mergeWithDefaults(candidate: Partial<SisAssessment>, patientReference?: string) {
   const baseline = emptyAssessment(patientReference);
 
-  return sisAssessmentSchema.parse({
+  const normalized = {
     ...baseline,
     ...candidate,
     patientReference: candidate.patientReference || patientReference || "",
@@ -74,8 +148,11 @@ function mergeWithDefaults(candidate: Partial<SisAssessment>, patientReference?:
       ...baseline.risks,
       ...(candidate.risks ?? {})
     },
-    openQuestions: candidate.openQuestions ?? []
-  });
+    openQuestions: candidate.openQuestions ?? [],
+    review: mergeReviewWithDefaults(candidate.review, candidate)
+  };
+
+  return sisAssessmentSchema.parse(normalized);
 }
 
 function mergeTopic(current: SisTopic, incoming: SisTopic) {
@@ -106,8 +183,44 @@ function mergeSisAssessments(current: SisAssessment, incoming: SisAssessment) {
       riskKeys.map((key) => [key, mergeRisk(current.risks[key]!, incoming.risks[key]!)])
     ) as SisAssessment["risks"],
     evaluationFocus: incoming.evaluationFocus || current.evaluationFocus,
-    openQuestions: incoming.openQuestions.length ? incoming.openQuestions : current.openQuestions
+    openQuestions: incoming.openQuestions.length ? incoming.openQuestions : current.openQuestions,
+    review: mergeReviewMetadata(current, incoming)
   });
+}
+
+function mergeFieldReview(current: SisFieldReview, incoming: SisFieldReview, incomingValue: unknown) {
+  return incomingValue ? incoming : current;
+}
+
+function mergeReviewMetadata(current: SisAssessment, incoming: SisAssessment): NonNullable<SisAssessment["review"]> {
+  const currentReview = current.review ?? emptyAssessmentReview();
+  const incomingReview = incoming.review ?? emptyAssessmentReview();
+
+  return {
+    whatMatters: mergeFieldReview(currentReview.whatMatters, incomingReview.whatMatters, incoming.whatMatters),
+    evaluationFocus: mergeFieldReview(currentReview.evaluationFocus, incomingReview.evaluationFocus, incoming.evaluationFocus),
+    topics: Object.fromEntries(
+      topicKeys.map((key) => [
+        key,
+        {
+          personView: mergeFieldReview(currentReview.topics[key]!.personView, incomingReview.topics[key]!.personView, incoming.topics[key]!.personView),
+          observation: mergeFieldReview(currentReview.topics[key]!.observation, incomingReview.topics[key]!.observation, incoming.topics[key]!.observation),
+          resources: mergeFieldReview(currentReview.topics[key]!.resources, incomingReview.topics[key]!.resources, incoming.topics[key]!.resources),
+          supportNeeds: mergeFieldReview(currentReview.topics[key]!.supportNeeds, incomingReview.topics[key]!.supportNeeds, incoming.topics[key]!.supportNeeds)
+        }
+      ])
+    ) as NonNullable<SisAssessment["review"]>["topics"],
+    risks: Object.fromEntries(
+      riskKeys.map((key) => [
+        key,
+        {
+          relevant: mergeFieldReview(currentReview.risks[key]!.relevant, incomingReview.risks[key]!.relevant, incoming.risks[key]!.relevant),
+          level: mergeFieldReview(currentReview.risks[key]!.level, incomingReview.risks[key]!.level, incoming.risks[key]!.level !== "none"),
+          notes: mergeFieldReview(currentReview.risks[key]!.notes, incomingReview.risks[key]!.notes, incoming.risks[key]!.notes)
+        }
+      ])
+    ) as NonNullable<SisAssessment["review"]>["risks"]
+  };
 }
 
 function buildTopicSummary(title: string, topic: SisTopic) {
@@ -406,7 +519,26 @@ Erforderliche JSON-Struktur:
     "pain": {"relevant": false, "level": "none", "notes": "string"}
   },
   "evaluationFocus": "string",
-  "openQuestions": ["string"]
+  "openQuestions": ["string"],
+  "review": {
+    "whatMatters": {"evidence": ["kurzer Originalausschnitt aus Transkript oder Live-Notizen"], "confidence": "high|medium|low|unknown", "needsReview": true},
+    "evaluationFocus": {"evidence": [], "confidence": "unknown", "needsReview": true},
+    "topics": {
+      "cognition": {
+        "personView": {"evidence": [], "confidence": "unknown", "needsReview": true},
+        "observation": {"evidence": [], "confidence": "unknown", "needsReview": true},
+        "resources": {"evidence": [], "confidence": "unknown", "needsReview": true},
+        "supportNeeds": {"evidence": [], "confidence": "unknown", "needsReview": true}
+      }
+    },
+    "risks": {
+      "fall": {
+        "relevant": {"evidence": [], "confidence": "unknown", "needsReview": true},
+        "level": {"evidence": [], "confidence": "unknown", "needsReview": true},
+        "notes": {"evidence": [], "confidence": "unknown", "needsReview": true}
+      }
+    }
+  }
 }
 
 Regeln:
@@ -418,6 +550,10 @@ Regeln:
 - Risk level muss einer dieser Werte sein: "none", "monitor", "action".
 - Schreibe fehlende, aber wichtige SIS-Fragen in openQuestions.
 - Wenn ein Abschnitt keine Evidenz hat, nutze einen leeren String.
+- Fuege fuer jedes gefuellte Feld im review-Block mindestens einen kurzen evidenznahen Originalausschnitt ein.
+- Setze confidence nur auf "high", wenn der Inhalt direkt und eindeutig aus Transkript oder Live-Notizen stammt.
+- Setze needsReview auf true bei niedriger/unklarer Evidenz, Interpretation, Risikoableitung oder wenn keine direkte Quelle vorhanden ist.
+- Felder ohne Inhalt erhalten evidence: [], confidence: "unknown", needsReview: false.
 
 Patientenreferenz: ${input.patientReference ?? consultation.patient_reference}
 

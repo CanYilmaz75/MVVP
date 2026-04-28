@@ -69,10 +69,80 @@ test("SIS schema requires all six topics and all pilot risk keys", () => {
       pain: { relevant: false, level: "none", notes: "" }
     },
     evaluationFocus: "",
-    openQuestions: []
+    openQuestions: [],
+    review: {
+      whatMatters: { evidence: ["Bewohner sagt, er möchte selbst entscheiden."], confidence: "high", needsReview: false },
+      evaluationFocus: { evidence: [], confidence: "unknown", needsReview: false },
+      topics: {
+        cognition: {
+          personView: { evidence: [], confidence: "unknown", needsReview: false },
+          observation: { evidence: [], confidence: "unknown", needsReview: false },
+          resources: { evidence: [], confidence: "unknown", needsReview: false },
+          supportNeeds: { evidence: [], confidence: "unknown", needsReview: false }
+        },
+        mobility: {
+          personView: { evidence: [], confidence: "unknown", needsReview: false },
+          observation: { evidence: [], confidence: "unknown", needsReview: false },
+          resources: { evidence: [], confidence: "unknown", needsReview: false },
+          supportNeeds: { evidence: [], confidence: "unknown", needsReview: false }
+        },
+        medical: {
+          personView: { evidence: [], confidence: "unknown", needsReview: false },
+          observation: { evidence: [], confidence: "unknown", needsReview: false },
+          resources: { evidence: [], confidence: "unknown", needsReview: false },
+          supportNeeds: { evidence: [], confidence: "unknown", needsReview: false }
+        },
+        selfCare: {
+          personView: { evidence: [], confidence: "unknown", needsReview: false },
+          observation: { evidence: [], confidence: "unknown", needsReview: false },
+          resources: { evidence: [], confidence: "unknown", needsReview: false },
+          supportNeeds: { evidence: [], confidence: "unknown", needsReview: false }
+        },
+        social: {
+          personView: { evidence: [], confidence: "unknown", needsReview: false },
+          observation: { evidence: [], confidence: "unknown", needsReview: false },
+          resources: { evidence: [], confidence: "unknown", needsReview: false },
+          supportNeeds: { evidence: [], confidence: "unknown", needsReview: false }
+        },
+        housing: {
+          personView: { evidence: [], confidence: "unknown", needsReview: false },
+          observation: { evidence: [], confidence: "unknown", needsReview: false },
+          resources: { evidence: [], confidence: "unknown", needsReview: false },
+          supportNeeds: { evidence: [], confidence: "unknown", needsReview: false }
+        }
+      },
+      risks: {
+        fall: {
+          relevant: { evidence: [], confidence: "unknown", needsReview: false },
+          level: { evidence: [], confidence: "unknown", needsReview: false },
+          notes: { evidence: [], confidence: "unknown", needsReview: false }
+        },
+        pressureUlcer: {
+          relevant: { evidence: [], confidence: "unknown", needsReview: false },
+          level: { evidence: [], confidence: "unknown", needsReview: false },
+          notes: { evidence: [], confidence: "unknown", needsReview: false }
+        },
+        malnutrition: {
+          relevant: { evidence: [], confidence: "unknown", needsReview: false },
+          level: { evidence: [], confidence: "unknown", needsReview: false },
+          notes: { evidence: [], confidence: "unknown", needsReview: false }
+        },
+        incontinence: {
+          relevant: { evidence: [], confidence: "unknown", needsReview: false },
+          level: { evidence: [], confidence: "unknown", needsReview: false },
+          notes: { evidence: [], confidence: "unknown", needsReview: false }
+        },
+        pain: {
+          relevant: { evidence: [], confidence: "unknown", needsReview: false },
+          level: { evidence: [], confidence: "unknown", needsReview: false },
+          notes: { evidence: [], confidence: "unknown", needsReview: false }
+        }
+      }
+    }
   });
 
   assert.equal(Object.keys(assessment.topics).length, 6);
+  assert.equal(assessment.review?.whatMatters.confidence, "high");
   assert.deepEqual(sisAssessmentJsonSchema.properties.risks.required, [
     "fall",
     "pressureUlcer",
