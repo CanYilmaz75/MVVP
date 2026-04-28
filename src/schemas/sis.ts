@@ -27,9 +27,13 @@ export const sisAssessmentSchema = z.object({
 });
 
 export const extractSisSchema = z.object({
-  transcriptText: z.string().min(1).max(120_000),
+  consultationId: z.string().uuid(),
   patientReference: z.string().max(120).optional(),
   liveNotes: z.string().max(20_000).optional()
+});
+
+export const saveSisAssessmentSchema = z.object({
+  assessment: sisAssessmentSchema
 });
 
 export type SisTopicKey = z.infer<typeof sisTopicKeySchema>;

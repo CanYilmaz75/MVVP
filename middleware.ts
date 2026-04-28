@@ -61,6 +61,7 @@ export async function middleware(request: NextRequest) {
   const isPublic = PUBLIC_ROUTES.some((route) => request.nextUrl.pathname.startsWith(route));
   const isProtected = request.nextUrl.pathname.startsWith("/dashboard")
     || request.nextUrl.pathname.startsWith("/consultations")
+    || request.nextUrl.pathname.startsWith("/sis")
     || request.nextUrl.pathname.startsWith("/templates")
     || request.nextUrl.pathname.startsWith("/exports")
     || request.nextUrl.pathname.startsWith("/settings");

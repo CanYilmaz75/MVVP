@@ -372,6 +372,85 @@ export type Database = {
           created_at?: string;
         }
       >;
+      sis_assessments: TableDefinition<
+        {
+          id: string;
+          organisation_id: string;
+          consultation_id: string;
+          current_version: number;
+          structured_json: Json;
+          rendered_text: string;
+          source_transcript_id: string | null;
+          created_by: string;
+          updated_by: string;
+          created_at: string;
+          updated_at: string;
+        },
+        {
+          id?: string;
+          organisation_id: string;
+          consultation_id: string;
+          current_version?: number;
+          structured_json: Json;
+          rendered_text: string;
+          source_transcript_id?: string | null;
+          created_by: string;
+          updated_by: string;
+          created_at?: string;
+          updated_at?: string;
+        },
+        {
+          id?: string;
+          organisation_id?: string;
+          consultation_id?: string;
+          current_version?: number;
+          structured_json?: Json;
+          rendered_text?: string;
+          source_transcript_id?: string | null;
+          created_by?: string;
+          updated_by?: string;
+          created_at?: string;
+          updated_at?: string;
+        }
+      >;
+      sis_assessment_versions: TableDefinition<
+        {
+          id: string;
+          organisation_id: string;
+          sis_assessment_id: string;
+          version_number: number;
+          structured_json: Json;
+          rendered_text: string;
+          source_transcript_id: string | null;
+          change_source: "extraction" | "manual_edit" | "regeneration";
+          created_by: string;
+          created_at: string;
+        },
+        {
+          id?: string;
+          organisation_id: string;
+          sis_assessment_id: string;
+          version_number: number;
+          structured_json: Json;
+          rendered_text: string;
+          source_transcript_id?: string | null;
+          change_source: "extraction" | "manual_edit" | "regeneration";
+          created_by: string;
+          created_at?: string;
+        },
+        {
+          id?: string;
+          organisation_id?: string;
+          sis_assessment_id?: string;
+          version_number?: number;
+          structured_json?: Json;
+          rendered_text?: string;
+          source_transcript_id?: string | null;
+          change_source?: "extraction" | "manual_edit" | "regeneration";
+          created_by?: string;
+          created_at?: string;
+        }
+      >;
       exports: TableDefinition<
         {
           id: string;

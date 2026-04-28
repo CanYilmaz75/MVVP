@@ -1,4 +1,5 @@
 import { AppError } from "@/lib/errors";
+import { assertApprovedForExport } from "@/lib/ai-guard";
 import { renderNotePdf } from "@/lib/pdf/render-note-pdf";
 import { createAuditLog } from "@/server/services/audit-service";
 import { ensureConsultationAccess, updateConsultationStatus } from "@/server/services/consultation-service";
@@ -26,6 +27,17 @@ export async function exportNote(input: {
     throw new AppError("NOTE_NOT_APPROVED", "Nur freigegebene Notizen koennen exportiert werden.", 400);
   }
 
+  assertApprovedForExport(Boolean(note.approved_by && note.approved_at));
+
+  if (consultation.status !== "approved" && consultation.status !== "exported") {
+    throw new AppError(
+      "CONSULTATION_NOT_APPROVED_FOR_EXPORT",
+      "Die Beratung muss fachlich freigegeben sein, bevor ein Export erfolgt.",
+      409,
+      { consultationStatus: consultation.status }
+    );
+  }
+
   if (input.exportType === "clipboard") {
     const exportRecord = await supabase
       .from("exports")
@@ -50,6 +62,11 @@ export async function exportNote(input: {
         exportType: "clipboard",
         versionNumber: note.current_version
       }
+    });
+
+    await updateConsultationStatus(input.consultationId, "exported", supabase, {
+      currentStatus: consultation.status,
+      transitionSource: "clipboard_export"
     });
 
     return {
@@ -102,7 +119,10 @@ export async function exportNote(input: {
     throw new AppError("PDF_SIGN_URL_FAILED", "PDF-Download-URL konnte nicht erstellt werden.", 500);
   }
 
-  await updateConsultationStatus(input.consultationId, "exported", supabase);
+  await updateConsultationStatus(input.consultationId, "exported", supabase, {
+    currentStatus: consultation.status,
+    transitionSource: "pdf_export"
+  });
   await createAuditLog(supabase, {
     organisationId,
     actorId: userId,

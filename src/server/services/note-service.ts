@@ -1,4 +1,5 @@
 import { AppError } from "@/lib/errors";
+import { assertNoteTransition } from "@/lib/workflow-state";
 import { renderSoapNote } from "@/server/services/note-renderer";
 import { createAuditLog } from "@/server/services/audit-service";
 import { validateNoteAgainstTranscript } from "@/server/services/validation-service";
@@ -101,6 +102,69 @@ async function persistValidationJob(
   });
 }
 
+function ensureNoteCanBeApproved(input: {
+  consultationStatus: string;
+  noteStatus: string;
+  note: SoapNote;
+  warnings: Awaited<ReturnType<typeof getCurrentWarnings>>;
+}) {
+  if (input.consultationStatus !== "draft_ready") {
+    throw new AppError(
+      "CONSULTATION_NOT_READY_FOR_APPROVAL",
+      "Die Beratung ist fachlich noch nicht bereit fuer die Freigabe.",
+      409,
+      { consultationStatus: input.consultationStatus }
+    );
+  }
+
+  if (input.noteStatus !== "draft" && input.noteStatus !== "edited") {
+    throw new AppError("NOTE_NOT_READY_FOR_APPROVAL", "Nur Entwuerfe koennen freigegeben werden.", 409, {
+      noteStatus: input.noteStatus
+    });
+  }
+
+  if (!input.note.requiresReview) {
+    throw new AppError("NOTE_REVIEW_FLAG_MISSING", "Die Notiz ist nicht als pruefpflichtiger Entwurf markiert.", 409);
+  }
+
+  if (!input.note.sections.subjective.chiefComplaint.trim()) {
+    throw new AppError("NOTE_SUBJECTIVE_REQUIRED", "Vor der Freigabe wird ein Hauptanliegen benoetigt.", 409);
+  }
+
+  if (!input.note.sections.assessment.clinicalSummary.trim()) {
+    throw new AppError("NOTE_ASSESSMENT_REQUIRED", "Vor der Freigabe wird eine klinische Einschaetzung benoetigt.", 409);
+  }
+
+  const planHasContent =
+    input.note.sections.plan.followUp.trim().length > 0
+    || input.note.sections.plan.medications.length > 0
+    || input.note.sections.plan.referrals.length > 0
+    || input.note.sections.plan.testsOrdered.length > 0
+    || input.note.sections.plan.instructions.length > 0;
+
+  if (!planHasContent) {
+    throw new AppError("NOTE_PLAN_REQUIRED", "Vor der Freigabe wird ein dokumentierter Plan benoetigt.", 409);
+  }
+
+  if (input.note.openQuestions.length > 0) {
+    throw new AppError("NOTE_OPEN_QUESTIONS_BLOCK_APPROVAL", "Offene Fragen muessen vor der Freigabe geklaert werden.", 409, {
+      openQuestions: input.note.openQuestions
+    });
+  }
+
+  const blockingWarnings = input.warnings.filter((warning) => warning.severity === "high");
+  if (blockingWarnings.length > 0) {
+    throw new AppError(
+      "NOTE_WARNINGS_BLOCK_APPROVAL",
+      "Freigabe ist blockiert, solange kritische Validierungshinweise bestehen.",
+      409,
+      {
+        warnings: blockingWarnings
+      }
+    );
+  }
+}
+
 export async function generateDraftNote(input: {
   consultationId: string;
   transcriptId?: string;
@@ -162,7 +226,16 @@ export async function generateDraftNote(input: {
     .eq("id", input.templateId ?? consultation.note_template_id ?? "")
     .maybeSingle();
 
-  await updateConsultationStatus(input.consultationId, "note_generating", supabase);
+  const { data: existingNote } = await supabase
+    .from("clinical_notes")
+    .select("*")
+    .eq("consultation_id", input.consultationId)
+    .maybeSingle();
+
+  await updateConsultationStatus(input.consultationId, "note_generating", supabase, {
+    currentStatus: consultation.status,
+    transitionSource: "note_generation"
+  });
   await createAuditLog(supabase, {
     organisationId,
     actorId: userId,
@@ -195,105 +268,120 @@ Quellen:
 ${sourceText}
 `;
 
-  const raw = await callJsonModel(systemPrompt, userPrompt);
-  const structured = await parseSoapNoteOrRepair(raw);
-  const rendered = renderSoapNote(structured);
-  const warnings = validateNoteAgainstTranscript(structured, sourceText);
+  try {
+    const raw = await callJsonModel(systemPrompt, userPrompt);
+    const structured = await parseSoapNoteOrRepair(raw);
+    const rendered = renderSoapNote(structured);
+    const warnings = validateNoteAgainstTranscript(structured, sourceText);
 
-  const { data: existingNote } = await supabase
-    .from("clinical_notes")
-    .select("*")
-    .eq("consultation_id", input.consultationId)
-    .maybeSingle();
+    let noteId: string;
+    let versionNumber: number;
+    let status: "draft" | "edited";
+    let changeSource: "generation" | "regeneration" | "post_approval_edit";
 
-  let noteId: string;
-  let versionNumber: number;
-  let status: "draft" | "edited";
-  let changeSource: "generation" | "regeneration" | "post_approval_edit";
+    if (!existingNote) {
+      const inserted = await supabase
+        .from("clinical_notes")
+        .insert({
+          organisation_id: organisationId,
+          consultation_id: input.consultationId,
+          current_version: 1,
+          status: "draft",
+          structured_json: structured,
+          rendered_text: rendered
+        })
+        .select("*")
+        .single();
 
-  if (!existingNote) {
-    const inserted = await supabase
-      .from("clinical_notes")
-      .insert({
-        organisation_id: organisationId,
-        consultation_id: input.consultationId,
-        current_version: 1,
-        status: "draft",
-        structured_json: structured,
-        rendered_text: rendered
-      })
-      .select("*")
-      .single();
+      if (inserted.error || !inserted.data) {
+        throw new AppError("NOTE_CREATE_FAILED", "Notizentwurf konnte nicht erstellt werden.", 500);
+      }
 
-    if (inserted.error || !inserted.data) {
-      throw new AppError("NOTE_CREATE_FAILED", "Notizentwurf konnte nicht erstellt werden.", 500);
+      noteId = inserted.data.id;
+      versionNumber = 1;
+      status = "draft";
+      changeSource = "generation";
+    } else {
+      noteId = existingNote.id;
+      versionNumber = existingNote.current_version + 1;
+      status = "edited";
+      changeSource = existingNote.status === "approved" ? "post_approval_edit" : "regeneration";
+      assertNoteTransition(existingNote.status, status, {
+        noteId,
+        consultationId: input.consultationId,
+        action: "generate"
+      });
+
+      const updated = await supabase
+        .from("clinical_notes")
+        .update({
+          current_version: versionNumber,
+          status,
+          structured_json: structured,
+          rendered_text: rendered,
+          approved_by: null,
+          approved_at: null
+        })
+        .eq("id", noteId)
+        .select("id")
+        .single();
+
+      if (updated.error) {
+        throw new AppError("NOTE_UPDATE_FAILED", "Notizentwurf konnte nicht aktualisiert werden.", 500);
+      }
     }
 
-    noteId = inserted.data.id;
-    versionNumber = 1;
-    status = "draft";
-    changeSource = "generation";
-  } else {
-    noteId = existingNote.id;
-    versionNumber = existingNote.current_version + 1;
-    status = "edited";
-    changeSource = existingNote.status === "approved" ? "post_approval_edit" : "regeneration";
+    await supabase.from("clinical_note_versions").insert({
+      organisation_id: organisationId,
+      clinical_note_id: noteId,
+      version_number: versionNumber,
+      structured_json: structured,
+      rendered_text: rendered,
+      change_source: changeSource,
+      created_by: userId
+    });
 
-    const updated = await supabase
-      .from("clinical_notes")
-      .update({
-        current_version: versionNumber,
-        status,
-        structured_json: structured,
-        rendered_text: rendered,
-        approved_by: null,
-        approved_at: null
-      })
-      .eq("id", noteId)
-      .select("id")
-      .single();
+    await persistValidationJob(supabase, {
+      organisationId,
+      consultationId: input.consultationId,
+      warnings
+    });
 
-    if (updated.error) {
-      throw new AppError("NOTE_UPDATE_FAILED", "Notizentwurf konnte nicht aktualisiert werden.", 500);
+    await updateConsultationStatus(input.consultationId, "draft_ready", supabase, {
+      currentStatus: "note_generating",
+      transitionSource: "note_generation_completed"
+    });
+    await createAuditLog(supabase, {
+      organisationId,
+      actorId: userId,
+      entityType: "clinical_note",
+      entityId: noteId,
+      action: "note_generated",
+      metadata: {
+        versionNumber
+      }
+    });
+
+    return {
+      id: noteId,
+      status,
+      versionNumber,
+      renderedText: rendered,
+      structured,
+      warnings
+    };
+  } catch (error) {
+    await updateConsultationStatus(input.consultationId, "failed", supabase, {
+      currentStatus: "note_generating",
+      transitionSource: "note_generation_failed"
+    });
+
+    if (error instanceof AppError) {
+      throw error;
     }
+
+    throw new AppError("NOTE_GENERATION_FAILED", "Notizentwurf konnte nicht erstellt werden.", 500);
   }
-
-  await supabase.from("clinical_note_versions").insert({
-    organisation_id: organisationId,
-    clinical_note_id: noteId,
-    version_number: versionNumber,
-    structured_json: structured,
-    rendered_text: rendered,
-    change_source: changeSource,
-    created_by: userId
-  });
-
-  await persistValidationJob(supabase, {
-    organisationId,
-    consultationId: input.consultationId,
-    warnings
-  });
-
-  await updateConsultationStatus(input.consultationId, "draft_ready", supabase);
-  await createAuditLog(supabase, {
-    organisationId,
-    actorId: userId,
-    entityType: "clinical_note",
-    entityId: noteId,
-    action: "note_generated",
-    metadata: {
-      versionNumber
-    }
-  });
-
-  return {
-    id: noteId,
-    status,
-    versionNumber,
-    renderedText: rendered,
-    structured,
-    warnings
-  };
 }
 
 export async function editDraftNote(input: {
@@ -304,7 +392,7 @@ export async function editDraftNote(input: {
   patch?: Partial<SoapNote>;
 }) {
   const { organisationId, userId, supabase } = await requireApiAuthContext();
-  await ensureConsultationAccess(input.consultationId);
+  const consultation = await ensureConsultationAccess(input.consultationId);
 
   const [{ data: currentNote }, { data: transcript }, { data: additionalTexts }] = await Promise.all([
     supabase
@@ -360,7 +448,12 @@ export async function editDraftNote(input: {
         ? "manual_edit"
         : "voice_edit";
 
-  const nextStatus = currentNote.status === "approved" ? "edited" : input.editMode === "manual" ? "edited" : "edited";
+  const nextStatus = "edited";
+  assertNoteTransition(currentNote.status, nextStatus, {
+    noteId: input.noteId,
+    consultationId: input.consultationId,
+    action: "edit"
+  });
 
   await supabase
     .from("clinical_notes")
@@ -399,6 +492,13 @@ export async function editDraftNote(input: {
     warnings
   });
 
+  if (consultation.status !== "draft_ready") {
+    await updateConsultationStatus(input.consultationId, "draft_ready", supabase, {
+      currentStatus: consultation.status,
+      transitionSource: "note_edit"
+    });
+  }
+
   await createAuditLog(supabase, {
     organisationId,
     actorId: userId,
@@ -427,7 +527,7 @@ export async function approveDraftNote(input: {
   expectedVersion: number;
 }) {
   const { organisationId, userId, supabase } = await requireApiAuthContext();
-  await ensureConsultationAccess(input.consultationId);
+  const consultation = await ensureConsultationAccess(input.consultationId);
 
   const { data: note } = await supabase
     .from("clinical_notes")
@@ -444,6 +544,21 @@ export async function approveDraftNote(input: {
     throw new AppError("STALE_NOTE_VERSION", "Die Notiz wurde geaendert und muss vor der Freigabe erneut geprueft werden.", 409);
   }
 
+  const structuredNote = soapNoteSchema.parse(note.structured_json);
+  const warnings = await getCurrentWarnings(input.consultationId);
+
+  ensureNoteCanBeApproved({
+    consultationStatus: consultation.status,
+    noteStatus: note.status,
+    note: structuredNote,
+    warnings
+  });
+  assertNoteTransition(note.status, "approved", {
+    noteId: input.noteId,
+    consultationId: input.consultationId,
+    action: "approve"
+  });
+
   const approvedAt = new Date().toISOString();
   await supabase
     .from("clinical_notes")
@@ -454,7 +569,10 @@ export async function approveDraftNote(input: {
     })
     .eq("id", input.noteId);
 
-  await updateConsultationStatus(input.consultationId, "approved", supabase);
+  await updateConsultationStatus(input.consultationId, "approved", supabase, {
+    currentStatus: consultation.status,
+    transitionSource: "note_approval"
+  });
   await createAuditLog(supabase, {
     organisationId,
     actorId: userId,

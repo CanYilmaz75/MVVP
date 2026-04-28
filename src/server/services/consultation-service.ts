@@ -1,4 +1,5 @@
 import { AppError } from "@/lib/errors";
+import { assertConsultationTransition, type ConsultationWorkflowStatus } from "@/lib/workflow-state";
 import type { SoapNote } from "@/schemas/note";
 import { createAuditLog } from "@/server/services/audit-service";
 import { getAuthContext, requireApiAuthContext } from "@/server/auth/context";
@@ -157,10 +158,33 @@ export async function ensureConsultationAccess(consultationId: string) {
 
 export async function updateConsultationStatus(
   consultationId: string,
-  status: string,
-  suppliedSupabase?: Awaited<ReturnType<typeof requireApiAuthContext>>["supabase"]
+  status: ConsultationWorkflowStatus,
+  suppliedSupabase?: Awaited<ReturnType<typeof requireApiAuthContext>>["supabase"],
+  options?: {
+    currentStatus?: string;
+    transitionSource?: string;
+  }
 ) {
   const supabase = suppliedSupabase ?? (await requireApiAuthContext()).supabase;
+  const currentStatus =
+    options?.currentStatus
+    ?? (
+      await supabase
+        .from("consultations")
+        .select("status")
+        .eq("id", consultationId)
+        .single()
+    ).data?.status;
+
+  if (!currentStatus) {
+    throw new AppError("CONSULTATION_NOT_FOUND", "Beratung wurde nicht gefunden.", 404);
+  }
+
+  assertConsultationTransition(currentStatus, status, {
+    consultationId,
+    transitionSource: options?.transitionSource ?? "internal"
+  });
+
   const { error } = await supabase
     .from("consultations")
     .update({ status })
@@ -175,13 +199,13 @@ export async function updateConsultation(
   consultationId: string,
   input: {
     patientReference?: string;
-    status?: string;
+    status?: "recording" | "paused";
   }
 ) {
   const { organisationId, userId, supabase } = await requireApiAuthContext();
-  await ensureConsultationAccess(consultationId);
+  const consultation = await ensureConsultationAccess(consultationId);
 
-  const update: { patient_reference?: string; status?: string } = {};
+  const update: { patient_reference?: string; status?: "recording" | "paused" } = {};
 
   if (input.patientReference) {
     update.patient_reference = input.patientReference;
@@ -193,6 +217,13 @@ export async function updateConsultation(
 
   if (!Object.keys(update).length) {
     throw new AppError("CONSULTATION_UPDATE_EMPTY", "Es wurden keine Änderungen übergeben.", 400);
+  }
+
+  if (update.status) {
+    assertConsultationTransition(consultation.status, update.status, {
+      consultationId,
+      transitionSource: "client"
+    });
   }
 
   const { data, error } = await supabase

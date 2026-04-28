@@ -14,6 +14,7 @@ const STATUS_MAP: Record<string, { label: string; variant: StatusVariant }> = {
   approved: { label: "Freigegeben", variant: "success" },
   exported: { label: "Exportiert", variant: "success" },
   failed: { label: "Fehlgeschlagen", variant: "destructive" },
+  sis_ready: { label: "SIS bereit", variant: "success" },
   draft: { label: "Entwurf", variant: "warning" },
   edited: { label: "Bearbeitet", variant: "primary" },
   generating: { label: "Wird erstellt", variant: "warning" },

@@ -1,50 +1,36 @@
-import { NextResponse } from "next/server";
-
-import { AppError, isAppError } from "@/lib/errors";
-import { logEvent } from "@/lib/logger";
+import { apiRoute, apiSuccess } from "@/server/api/route";
+import { enforceAiRouteSafety } from "@/lib/ai-guard";
+import { AppError } from "@/lib/errors";
 import { transcribeInstructionAudio } from "@/server/services/transcription-service";
+import { requireApiAuthContext } from "@/server/auth/context";
+import { ensureConsultationAccess } from "@/server/services/consultation-service";
 
-export async function POST(request: Request) {
-  const requestId = crypto.randomUUID();
+export const POST = apiRoute<{ id: string }>(async ({ params, request, requestId }) => {
+  const auth = await requireApiAuthContext();
+  await ensureConsultationAccess(params.id);
+  await enforceAiRouteSafety({
+    organisationId: auth.organisationId,
+    userId: auth.userId,
+    consultationId: params.id,
+    action: "voice-edit-preview",
+    limit: 20,
+    featureFlag: "voiceEdit",
+    disabledMessage: "Sprachbearbeitung ist derzeit deaktiviert."
+  });
 
-  try {
-    const formData = await request.formData();
-    const file = formData.get("file");
+  const formData = await request.formData();
+  const file = formData.get("file");
 
-    if (!(file instanceof File)) {
-      throw new AppError("INVALID_VOICE_EDIT_FILE", "Audio fuer die Sprachbearbeitung ist erforderlich.", 400);
-    }
-
-    const instructionText = await transcribeInstructionAudio(file, file.type);
-
-    return NextResponse.json({
-      data: {
-        instructionText
-      },
-      requestId
-    });
-  } catch (error) {
-    const appError = isAppError(error)
-      ? error
-      : new AppError("VOICE_EDIT_PREVIEW_FAILED", "Vorschau der Sprachbearbeitung konnte nicht erstellt werden.", 500);
-
-    logEvent({
-      level: "error",
-      message: appError.message,
-      requestId,
-      route: "/api/consultations/[id]/voice-edit/preview",
-      errorCode: appError.code
-    });
-
-    return NextResponse.json(
-      {
-        error: {
-          code: appError.code,
-          message: appError.message,
-          requestId
-        }
-      },
-      { status: appError.status }
-    );
+  if (!(file instanceof File)) {
+    throw new AppError("INVALID_VOICE_EDIT_FILE", "Audio fuer die Sprachbearbeitung ist erforderlich.", 400);
   }
-}
+
+  const instructionText = await transcribeInstructionAudio(file, file.type);
+
+  return apiSuccess(
+    {
+      instructionText
+    },
+    requestId
+  );
+});

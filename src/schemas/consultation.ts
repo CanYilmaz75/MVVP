@@ -24,7 +24,7 @@ export const createConsultationSchema = z.object({
 
 export const updateConsultationSchema = z.object({
   patientReference: z.string().min(2).max(120).optional(),
-  status: consultationStatusSchema.optional()
+  status: z.enum(["recording", "paused"]).optional()
 });
 
 export const initiateAudioUploadSchema = z.object({

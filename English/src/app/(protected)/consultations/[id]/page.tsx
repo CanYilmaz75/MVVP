@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { ConsultationWorkspace } from "@/features/consultations/consultation-workspace";
+import { featureFlags } from "@/lib/feature-flags";
 import { getConsultationWorkspace } from "@/server/services/consultation-service";
 
 export default async function ConsultationPage({
@@ -15,5 +16,14 @@ export default async function ConsultationPage({
     notFound();
   }
 
-  return <ConsultationWorkspace workspace={workspace} />;
+  return (
+    <ConsultationWorkspace
+      workspace={workspace}
+      capabilities={{
+        voiceEdit: featureFlags.voiceEdit,
+        aiTranscription: featureFlags.aiTranscription,
+        aiNoteGeneration: featureFlags.aiNoteGeneration
+      }}
+    />
+  );
 }

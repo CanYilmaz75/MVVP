@@ -30,6 +30,11 @@ import { LANGUAGE_DETECT_VALUE, languageLabel } from "@/lib/language-settings";
 
 type Props = {
   workspace: ConsultationWorkspaceData;
+  capabilities: {
+    voiceEdit: boolean;
+    aiTranscription: boolean;
+    aiNoteGeneration: boolean;
+  };
 };
 
 function arraysToText(values: string[]) {
@@ -56,7 +61,7 @@ const additionalTextSourceLabels: Record<string, string> = {
   chat: "Chat"
 };
 
-export function ConsultationWorkspace({ workspace: initialWorkspace }: Props) {
+export function ConsultationWorkspace({ workspace: initialWorkspace, capabilities }: Props) {
   const router = useRouter();
   const [workspace, setWorkspace] = useState(initialWorkspace);
   const [noteDraft, setNoteDraft] = useState<SoapNote | null>(initialWorkspace.note?.structured_json ?? null);
@@ -418,7 +423,7 @@ export function ConsultationWorkspace({ workspace: initialWorkspace }: Props) {
         },
         body: JSON.stringify({
           transcriptId: undefined,
-          idempotencyKey: `${workspace.consultation.id}-${transcript?.id ?? "additional-text"}-${workspace.additionalTexts.length}-${Date.now()}`
+          idempotencyKey: `${workspace.consultation.id}:${transcript?.id ?? "additional-text"}:${workspace.additionalTexts.map((item) => item.id).join(",")}:${workspace.note?.current_version ?? 0}`
         })
       });
       const payload = await response.json();
@@ -557,7 +562,8 @@ export function ConsultationWorkspace({ workspace: initialWorkspace }: Props) {
         },
         body: JSON.stringify({
           noteId: note.id,
-          exportType: "clipboard"
+          exportType: "clipboard",
+          idempotencyKey: `${note.id}:${note.current_version}:clipboard`
         })
       });
       const payload = await response.json();
@@ -584,7 +590,8 @@ export function ConsultationWorkspace({ workspace: initialWorkspace }: Props) {
         },
         body: JSON.stringify({
           noteId: note.id,
-          exportType: "pdf"
+          exportType: "pdf",
+          idempotencyKey: `${note.id}:${note.current_version}:pdf`
         })
       });
       const payload = await response.json();
@@ -687,11 +694,15 @@ export function ConsultationWorkspace({ workspace: initialWorkspace }: Props) {
               Audio hochladen
             </Button>
             <input ref={fileInputRef} className="hidden" type="file" accept="audio/*" onChange={onFileUpload} />
-            <Button variant="outline" onClick={transcribeAudio} disabled={!workspace.latestAudioAsset || busyAction !== null}>
+            <Button
+              variant="outline"
+              onClick={transcribeAudio}
+              disabled={!workspace.latestAudioAsset || busyAction !== null || !capabilities.aiTranscription}
+            >
               {busyAction === "transcribe" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Transkribieren
             </Button>
-            <Button onClick={generateNote} disabled={!canGenerateNote || busyAction !== null}>
+            <Button onClick={generateNote} disabled={!canGenerateNote || busyAction !== null || !capabilities.aiNoteGeneration}>
               {busyAction === "generate" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <WandSparkles className="mr-2 h-4 w-4" />}
               {workspace.note ? "Entwurf neu erstellen" : "Notizentwurf erstellen"}
             </Button>
@@ -718,6 +729,16 @@ export function ConsultationWorkspace({ workspace: initialWorkspace }: Props) {
             Die gesprochene Sprache wird automatisch erkannt und die Notiz auf Deutsch erstellt. Prüfen Sie Übersetzung,
             Medikamente, Allergien, Dosierungen und Verfahren sorgfältig.
           </p>
+        </div>
+      ) : null}
+      {!capabilities.aiTranscription ? (
+        <div className="rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
+          KI-Transkription ist aktuell deaktiviert. Audio kann weiter erfasst werden, die automatische Verarbeitung ist aber gesperrt.
+        </div>
+      ) : null}
+      {!capabilities.aiNoteGeneration ? (
+        <div className="rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
+          KI-Notizerstellung ist aktuell deaktiviert. Entwürfe lassen sich erst nach erneuter Freigabe dieser Funktion erzeugen.
         </div>
       ) : null}
 
@@ -842,21 +863,23 @@ export function ConsultationWorkspace({ workspace: initialWorkspace }: Props) {
               )}
             </div>
 
-            <div className="space-y-3">
-              <p className="font-medium">Sprachbearbeitung</p>
-              <input ref={voiceInputRef} type="file" accept="audio/*" className="block w-full text-xs" />
-              <Button variant="outline" className="w-full" onClick={() => runAction("voice-preview", previewVoiceEdit)} disabled={busyAction !== null}>
-                Sprachbefehl voranzeigen
-              </Button>
-              <Textarea
-                placeholder="Die Vorschau des Sprachbefehls erscheint hier. Sie koennen den Text vor dem Anwenden noch verfeinern."
-                value={voiceInstruction}
-                onChange={(event) => setVoiceInstruction(event.target.value)}
-              />
-              <Button className="w-full" onClick={applyVoiceEdit} disabled={!workspace.note || !voiceInstruction.trim() || busyAction !== null}>
-                Sprachbearbeitung anwenden
-              </Button>
-            </div>
+            {capabilities.voiceEdit ? (
+              <div className="space-y-3">
+                <p className="font-medium">Sprachbearbeitung</p>
+                <input ref={voiceInputRef} type="file" accept="audio/*" className="block w-full text-xs" />
+                <Button variant="outline" className="w-full" onClick={() => runAction("voice-preview", previewVoiceEdit)} disabled={busyAction !== null}>
+                  Sprachbefehl voranzeigen
+                </Button>
+                <Textarea
+                  placeholder="Die Vorschau des Sprachbefehls erscheint hier. Sie koennen den Text vor dem Anwenden noch verfeinern."
+                  value={voiceInstruction}
+                  onChange={(event) => setVoiceInstruction(event.target.value)}
+                />
+                <Button className="w-full" onClick={applyVoiceEdit} disabled={!workspace.note || !voiceInstruction.trim() || busyAction !== null}>
+                  Sprachbearbeitung anwenden
+                </Button>
+              </div>
+            ) : null}
 
             <div className="space-y-3">
               <p className="font-medium">Freigegebener Export</p>

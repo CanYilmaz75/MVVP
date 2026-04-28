@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Route } from "next";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Check,
   ClipboardCopy,
@@ -37,8 +38,17 @@ type RiskState = {
 };
 type TopicMap = Record<SisTopicKey, TopicState>;
 type RiskMap = Record<SisRiskKey, RiskState>;
-type BusyAction = "create-session" | "record" | "upload" | "transcribe" | "extract" | null;
+type BusyAction = "create-session" | "record" | "upload" | "transcribe" | "extract" | "save" | "load" | null;
 type RecordingMimeType = "audio/webm" | "audio/mp4" | "audio/wav";
+type PersistedSisPayload = {
+  id: string;
+  consultationId: string;
+  currentVersion: number;
+  assessment: SisAssessment;
+  renderedText: string;
+  transcriptText: string | null;
+  sourceTranscriptId: string | null;
+};
 
 const topicDefinitions: Array<{
   key: SisTopicKey;
@@ -193,23 +203,6 @@ function buildTopicSummary(title: string, topic: TopicState) {
   return parts.length ? `${title}: ${parts.join(" | ")}` : null;
 }
 
-function mergeTopic(current: TopicState, incoming: TopicState) {
-  return {
-    personView: incoming.personView || current.personView,
-    observation: incoming.observation || current.observation,
-    resources: incoming.resources || current.resources,
-    supportNeeds: incoming.supportNeeds || current.supportNeeds
-  };
-}
-
-function mergeRisk(current: RiskState, incoming: RiskState) {
-  return {
-    relevant: incoming.relevant || current.relevant,
-    level: incoming.level !== "none" ? incoming.level : current.level,
-    notes: incoming.notes || current.notes
-  };
-}
-
 function getSupportedRecordingMimeType(): RecordingMimeType {
   if (typeof MediaRecorder === "undefined") {
     throw new Error("Audioaufnahme wird in diesem Browser nicht unterstuetzt.");
@@ -266,7 +259,16 @@ function formatSisError(error: unknown, fallback = "Aktion fehlgeschlagen.") {
   return fallback;
 }
 
-export function SisWorkspace() {
+export function SisWorkspace({
+  capabilities
+}: {
+  capabilities: {
+    aiTranscription: boolean;
+    sisExtraction: boolean;
+  };
+}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const introStepIndex = 0;
   const recordingStepIndex = 1;
   const topicStepStart = 2;
@@ -281,6 +283,7 @@ export function SisWorkspace() {
   const [liveNotes, setLiveNotes] = useState("");
   const [transcriptText, setTranscriptText] = useState("");
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [currentVersion, setCurrentVersion] = useState(0);
   const [latestAudioAssetId, setLatestAudioAssetId] = useState<string | null>(null);
   const [sessionStatus, setSessionStatus] = useState("not_started");
   const [activeTopicKey, setActiveTopicKey] = useState<SisTopicKey>("cognition");
@@ -334,6 +337,8 @@ export function SisWorkspace() {
 
   const activeTopic = topicDefinitions.find((topic) => topic.key === activeTopicKey) ?? topicDefinitions[0]!;
   const activeTopicState = topics[activeTopic.key];
+  const canRunSisVoiceFlow = capabilities.aiTranscription && capabilities.sisExtraction;
+  const hasUnsavedSisChanges = Boolean(sessionId) && currentVersion >= 0;
 
   const guidedQuestions = useMemo(() => {
     const questions: string[] = [];
@@ -419,6 +424,78 @@ export function SisWorkspace() {
       .join("\n");
   }, [evaluationFocus, measurePlan, openQuestions, patientReference, relevantRisks, topics, whatMatters]);
 
+  function currentAssessment(): SisAssessment {
+    return {
+      patientReference,
+      whatMatters,
+      topics,
+      risks,
+      evaluationFocus,
+      openQuestions
+    };
+  }
+
+  function applyPersistedSis(payload: PersistedSisPayload) {
+    setSessionId(payload.consultationId);
+    setCurrentVersion(payload.currentVersion);
+    setPatientReference(payload.assessment.patientReference);
+    setWhatMatters(payload.assessment.whatMatters);
+    setTopics(payload.assessment.topics as TopicMap);
+    setRisks(payload.assessment.risks as RiskMap);
+    setEvaluationFocus(payload.assessment.evaluationFocus);
+    setOpenQuestions(payload.assessment.openQuestions);
+    setTranscriptText(payload.transcriptText ?? "");
+    setSessionStatus(payload.transcriptText ? "sis_ready" : "draft_ready");
+  }
+
+  useEffect(() => {
+    const consultationId = searchParams.get("consultationId");
+
+    if (!consultationId || consultationId === sessionId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      setBusyAction("load");
+      setError(null);
+
+      try {
+        const response = await fetch(`/api/consultations/${consultationId}/sis`, {
+          cache: "no-store"
+        });
+        const payload = await response.json();
+
+        if (!response.ok) {
+          throw new Error(payload.error?.message ?? "SIS-Sitzung konnte nicht geladen werden.");
+        }
+
+        if (!cancelled) {
+          if (payload.data) {
+            applyPersistedSis(payload.data);
+          } else {
+            setSessionId(consultationId);
+            setCurrentVersion(0);
+            setSessionStatus("created");
+          }
+        }
+      } catch (loadError) {
+        if (!cancelled) {
+          setError(formatSisError(loadError, "SIS-Sitzung konnte nicht geladen werden."));
+        }
+      } finally {
+        if (!cancelled) {
+          setBusyAction(null);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, sessionId]);
+
   async function runAction(action: Exclude<BusyAction, null>, callback: () => Promise<void>) {
     setBusyAction(action);
     setError(null);
@@ -462,7 +539,9 @@ export function SisWorkspace() {
     }
 
     setSessionId(payload.data.id);
+    setCurrentVersion(0);
     setSessionStatus(payload.data.status);
+    router.replace(`/sis?consultationId=${payload.data.id}`);
     return payload.data.id as string;
   }
 
@@ -520,6 +599,10 @@ export function SisWorkspace() {
 
   async function startGuidedRecording() {
     await runAction("record", async () => {
+      if (!canRunSisVoiceFlow) {
+        throw new Error("Die sprachgestützte SIS-Verarbeitung ist aktuell deaktiviert.");
+      }
+
       if (!navigator.mediaDevices?.getUserMedia) {
         throw new Error("Mikrofonzugriff ist in diesem Browser nicht verfuegbar.");
       }
@@ -586,6 +669,10 @@ export function SisWorkspace() {
     }
 
     await runAction("upload", async () => {
+      if (!canRunSisVoiceFlow) {
+        throw new Error("Die sprachgestützte SIS-Verarbeitung ist aktuell deaktiviert.");
+      }
+
       const session = await ensureSisSession();
       const audioAssetId = await uploadAudio(session, file, "upload");
       await transcribeAndExtract(session, audioAssetId);
@@ -632,7 +719,7 @@ export function SisWorkspace() {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        transcriptText: rawText,
+        consultationId: session,
         patientReference,
         liveNotes
       })
@@ -643,30 +730,35 @@ export function SisWorkspace() {
       throw new Error(extractPayload.error?.message ?? "SIS-Extraktion fehlgeschlagen.");
     }
 
-    applyExtractedSis(extractPayload.data);
-    setSessionStatus("sis_ready");
+    applyPersistedSis(extractPayload.data);
     goToStep(topicStepStart);
     setSuccessMessage("SIS wurde aus dem Gespraech strukturiert.");
   }
 
-  function applyExtractedSis(assessment: SisAssessment) {
-    setPatientReference((current) => assessment.patientReference || current);
-    setWhatMatters((current) => assessment.whatMatters || current);
-    setTopics((current) =>
-      Object.fromEntries(
-        topicDefinitions.map((topic) => [topic.key, mergeTopic(current[topic.key], assessment.topics[topic.key] ?? emptyTopic)])
-      ) as TopicMap
-    );
-    setRisks((current) =>
-      Object.fromEntries(
-        riskDefinitions.map((risk) => [
-          risk.key,
-          mergeRisk(current[risk.key], assessment.risks[risk.key] ?? { relevant: false, level: "none", notes: "" })
-        ])
-      ) as RiskMap
-    );
-    setEvaluationFocus((current) => assessment.evaluationFocus || current);
-    setOpenQuestions(assessment.openQuestions);
+  async function saveCurrentSis() {
+    await runAction("save", async () => {
+      const session = await ensureSisSession();
+      const response = await fetch(`/api/consultations/${session}/sis`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          assessment: currentAssessment()
+        })
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.error?.message ?? "SIS konnte nicht gespeichert werden.");
+      }
+
+      applyPersistedSis({
+        ...payload.data,
+        transcriptText
+      });
+      setSuccessMessage("SIS gespeichert.");
+    });
   }
 
   function updateTopic(topicKey: SisTopicKey, field: keyof TopicState, value: string) {
@@ -705,6 +797,7 @@ export function SisWorkspace() {
     setLiveNotes("");
     setTranscriptText("");
     setSessionId(null);
+    setCurrentVersion(0);
     setLatestAudioAssetId(null);
     setSessionStatus("not_started");
     setActiveTopicKey("cognition");
@@ -712,6 +805,7 @@ export function SisWorkspace() {
     setCopied(false);
     setError(null);
     setSuccessMessage(null);
+    router.replace("/sis");
   }
 
   function goToStep(stepIndex: number) {
@@ -775,6 +869,7 @@ export function SisWorkspace() {
               <Badge variant="primary">
                 Schritt {currentStepIndex + 1} von {totalSteps}
               </Badge>
+              {currentVersion > 0 ? <Badge>Version {currentVersion}</Badge> : null}
             </div>
             <div className="flex flex-wrap gap-6 text-sm text-muted-foreground">
               <span>Themenfelder: {completedTopicCount}/{topicDefinitions.length}</span>
@@ -783,6 +878,10 @@ export function SisWorkspace() {
             </div>
           </div>
           <div className="flex flex-wrap gap-3">
+            <Button variant="outline" onClick={() => void saveCurrentSis()} disabled={busyAction !== null || isRecording || !hasUnsavedSisChanges}>
+              {busyAction === "save" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              SIS speichern
+            </Button>
             <Button variant="outline" onClick={resetSis} disabled={busyAction !== null || isRecording}>
               <RotateCcw className="mr-2 h-4 w-4" />
               Zurücksetzen
@@ -805,6 +904,16 @@ export function SisWorkspace() {
       {successMessage ? (
         <div className="rounded-2xl border border-success/20 bg-success/5 px-4 py-3 text-sm text-success">{successMessage}</div>
       ) : null}
+      {!capabilities.aiTranscription ? (
+        <div className="rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
+          KI-Transkription ist derzeit deaktiviert. Neue SIS-Aufnahmen können aktuell nicht automatisch verarbeitet werden.
+        </div>
+      ) : null}
+      {!capabilities.sisExtraction ? (
+        <div className="rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
+          KI-gestützte SIS-Extraktion ist derzeit deaktiviert. Bestehende Sitzungen lassen sich weiter manuell bearbeiten und speichern.
+        </div>
+      ) : null}
 
       <Card className="border-primary/20 bg-primary/[0.03]">
         <CardContent className="flex flex-col gap-5 p-6 xl:flex-row xl:items-center xl:justify-between">
@@ -817,14 +926,15 @@ export function SisWorkspace() {
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={busyAction !== null || isRecording}>
+            <input ref={fileInputRef} className="hidden" type="file" accept="audio/*" onChange={onFileUpload} />
+            <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={busyAction !== null || isRecording || !canRunSisVoiceFlow}>
               <FileAudio className="mr-2 h-4 w-4" />
               Audio hochladen
             </Button>
             <Button
               size="lg"
               onClick={() => void (isRecording ? stopGuidedRecording() : startGuidedRecording())}
-              disabled={busyAction !== null && busyAction !== "record"}
+              disabled={!canRunSisVoiceFlow || (busyAction !== null && busyAction !== "record")}
             >
               {busyAction === "record" || busyAction === "upload" ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -882,6 +992,7 @@ export function SisWorkspace() {
               <p>{patientReference || "Offen"}</p>
               <p>{transcriptText ? "Transkript da" : "Kein Transkript"}</p>
               <p>{openQuestions.length} Fragen offen</p>
+              <p>{currentVersion > 0 ? `Version ${currentVersion}` : "Noch nicht gespeichert"}</p>
             </div>
 
             {sessionId ? (
@@ -927,7 +1038,7 @@ export function SisWorkspace() {
                   <Button
                     size="lg"
                     onClick={() => void (isRecording ? stopGuidedRecording() : startGuidedRecording())}
-                    disabled={busyAction !== null && busyAction !== "record"}
+                    disabled={!canRunSisVoiceFlow || (busyAction !== null && busyAction !== "record")}
                   >
                     {busyAction === "record" || busyAction === "upload" ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -960,14 +1071,13 @@ export function SisWorkspace() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex flex-wrap gap-3">
-                  <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={busyAction !== null || isRecording}>
+                  <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={busyAction !== null || isRecording || !canRunSisVoiceFlow}>
                     <FileAudio className="mr-2 h-4 w-4" />
                     Audio hochladen
                   </Button>
-                  <input ref={fileInputRef} className="hidden" type="file" accept="audio/*" onChange={onFileUpload} />
                   <Button
                     onClick={() => void (isRecording ? stopGuidedRecording() : startGuidedRecording())}
-                    disabled={busyAction !== null && busyAction !== "record"}
+                    disabled={!canRunSisVoiceFlow || (busyAction !== null && busyAction !== "record")}
                   >
                     {busyAction === "record" || busyAction === "upload" ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1201,10 +1311,16 @@ export function SisWorkspace() {
                       <pre className="whitespace-pre-wrap font-sans text-sm leading-6">{sisText}</pre>
                     </div>
 
-                    <Button onClick={copySisText}>
-                      {copied ? <Check className="mr-2 h-4 w-4" /> : <ClipboardCopy className="mr-2 h-4 w-4" />}
-                      {copied ? "Kopiert" : "SIS kopieren"}
-                    </Button>
+                    <div className="flex flex-wrap gap-3">
+                      <Button variant="outline" onClick={() => void saveCurrentSis()} disabled={busyAction !== null || isRecording}>
+                        {busyAction === "save" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        SIS speichern
+                      </Button>
+                      <Button onClick={copySisText}>
+                        {copied ? <Check className="mr-2 h-4 w-4" /> : <ClipboardCopy className="mr-2 h-4 w-4" />}
+                        {copied ? "Kopiert" : "SIS kopieren"}
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="space-y-4">

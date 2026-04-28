@@ -1,15 +1,21 @@
 import { apiRoute, apiSuccess, parseJsonBody } from "@/server/api/route";
 import { transcribeConsultationSchema } from "@/schemas/transcript";
 import { transcribeConsultationAudio } from "@/server/services/transcription-service";
-import { enforceRateLimit } from "@/lib/rate-limit";
+import { enforceAiRouteSafety } from "@/lib/ai-guard";
 import { requireApiAuthContext } from "@/server/auth/context";
+import { ensureConsultationAccess } from "@/server/services/consultation-service";
 
 export const POST = apiRoute<{ id: string }>(async ({ params, request, requestId }) => {
   const auth = await requireApiAuthContext();
-  await enforceRateLimit({
-    identifier: `${auth.organisationId}:${auth.userId}:${params.id}`,
+  await ensureConsultationAccess(params.id);
+  await enforceAiRouteSafety({
+    organisationId: auth.organisationId,
+    userId: auth.userId,
+    consultationId: params.id,
     action: "transcribe",
-    limit: 12
+    limit: 12,
+    featureFlag: "aiTranscription",
+    disabledMessage: "KI-Transkription ist derzeit deaktiviert."
   });
 
   const body = await parseJsonBody(transcribeConsultationSchema, request);

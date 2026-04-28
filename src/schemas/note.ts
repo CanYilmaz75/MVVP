@@ -56,8 +56,7 @@ export const generateNoteSchema = z.object({
 
 export const editNoteSchema = z.object({
   noteId: z.string().uuid(),
-  editMode: z.enum(["manual", "voice"]),
-  instructionText: z.string().min(1).max(5000).optional(),
+  editMode: z.literal("manual"),
   patch: z
     .object({
       sections: soapNoteSchema.shape.sections.partial().optional(),
