@@ -88,21 +88,23 @@ Die Funktion ordnet die SIS in das vierstufige Strukturmodell ein:
 
 ## Aktuelle technische Umsetzung
 
-Die Umsetzung ist eine clientseitige Arbeitsflaeche in `src/features/sis/sis-workspace.tsx`.
+Die Umsetzung besteht aus einer clientseitigen Arbeitsflaeche in `src/features/sis/sis-workspace.tsx`,
+persistenten Supabase-Tabellen und einem serverseitigen SIS-Service.
 
 Aktueller Stand:
 
-- SIS-Daten werden nach der Extraktion im Browser-State gehalten.
+- SIS-Daten werden nach der Extraktion in `sis_assessments` gespeichert.
+- Jede Speicherung erzeugt eine unveraenderliche Version in `sis_assessment_versions`.
 - Audio-Aufnahme, Audio-Upload und Transkription nutzen die bestehende Beratungspipeline.
 - Eine SIS-Sitzung wird als Beratung mit `consultationType: "sis"` angelegt.
-- Die API `POST /api/sis/extract` strukturiert Transkript und Live-Notizen in SIS-Felder.
+- Die API `POST /api/sis/extract` strukturiert Transkript und Live-Notizen in SIS-Felder und persistiert das Ergebnis.
+- `GET` und `PUT` auf `/api/consultations/[id]/sis` laden bzw. speichern die aktuelle SIS-Version.
 - Die zusammengefasste SIS kann in die Zwischenablage kopiert werden.
-- Es gibt noch keine eigene persistente SIS-Tabelle in Supabase.
+- RLS schuetzt SIS-Daten organisationsbezogen; Versionen werden nur hinzugefuegt und nicht ueberschrieben.
 
 ## Naechste sinnvolle Ausbaustufen
 
-- Supabase-Tabelle fuer SIS-Datensaetze ergaenzen.
 - SIS mit Bewohner- oder Beratungsreferenzen verbinden.
-- Versionierung und Freigabeprozess analog zu Notes einfuehren.
+- Freigabeprozess analog zu Notes einfuehren.
 - Export als PDF in den bestehenden Export-Service integrieren.
 - Validierung fuer Pflichtfelder und fachliche Warnhinweise ergaenzen.

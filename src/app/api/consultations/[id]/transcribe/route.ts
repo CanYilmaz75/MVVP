@@ -1,9 +1,9 @@
 import { apiRoute, apiSuccess, parseJsonBody } from "@/server/api/route";
 import { transcribeConsultationSchema } from "@/schemas/transcript";
-import { transcribeConsultationAudio } from "@/server/services/transcription-service";
 import { enforceAiRouteSafety } from "@/lib/ai-guard";
 import { requireApiAuthContext } from "@/server/auth/context";
 import { ensureConsultationAccess } from "@/server/services/consultation-service";
+import { createOrReuseAsyncJob } from "@/server/services/job-service";
 
 export const POST = apiRoute<{ id: string }>(async ({ params, request, requestId }) => {
   const auth = await requireApiAuthContext();
@@ -19,13 +19,20 @@ export const POST = apiRoute<{ id: string }>(async ({ params, request, requestId
   });
 
   const body = await parseJsonBody(transcribeConsultationSchema, request);
-  const transcript = await transcribeConsultationAudio(params.id, body.audioAssetId);
+  const job = await createOrReuseAsyncJob({
+    action: "transcribe",
+    consultationId: params.id,
+    payload: {
+      audioAssetId: body.audioAssetId
+    },
+    idempotencyKey: body.audioAssetId
+  });
 
   return apiSuccess(
     {
-      transcriptId: transcript?.id,
-      transcriptStatus: transcript?.status
+      job
     },
-    requestId
+    requestId,
+    { status: job.status === "completed" ? 200 : 202 }
   );
 });

@@ -1,9 +1,9 @@
 import { apiRoute, apiSuccess, parseJsonBody } from "@/server/api/route";
 import { enforceAiRouteSafety } from "@/lib/ai-guard";
 import { voiceEditApplySchema } from "@/schemas/note";
-import { editDraftNote } from "@/server/services/note-service";
 import { requireApiAuthContext } from "@/server/auth/context";
 import { ensureConsultationAccess } from "@/server/services/consultation-service";
+import { createOrReuseAsyncJob } from "@/server/services/job-service";
 
 export const POST = apiRoute<{ id: string }>(async ({ params, request, requestId }) => {
   const auth = await requireApiAuthContext();
@@ -19,12 +19,15 @@ export const POST = apiRoute<{ id: string }>(async ({ params, request, requestId
   });
 
   const body = await parseJsonBody(voiceEditApplySchema, request);
-  const result = await editDraftNote({
+  const job = await createOrReuseAsyncJob({
+    action: "voice-edit-apply",
     consultationId: params.id,
-    noteId: body.noteId,
-    editMode: "voice",
-    instructionText: body.instructionText
+    payload: {
+      noteId: body.noteId,
+      instructionText: body.instructionText
+    },
+    idempotencyKey: `${body.noteId}:${body.instructionText.slice(0, 120)}`
   });
 
-  return apiSuccess(result, requestId);
+  return apiSuccess({ job }, requestId, { status: job.status === "completed" ? 200 : 202 });
 });

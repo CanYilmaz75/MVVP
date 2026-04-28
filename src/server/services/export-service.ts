@@ -52,11 +52,15 @@ export async function exportNote(input: {
       .select("*")
       .single();
 
+    if (exportRecord.error || !exportRecord.data) {
+      throw new AppError("EXPORT_RECORD_FAILED", "Export-Metadaten konnten nicht gespeichert werden.", 500);
+    }
+
     await createAuditLog(supabase, {
       organisationId,
       actorId: userId,
       entityType: "export",
-      entityId: exportRecord.data?.id,
+      entityId: exportRecord.data.id,
       action: "note_exported",
       metadata: {
         exportType: "clipboard",
@@ -70,7 +74,7 @@ export async function exportNote(input: {
     });
 
     return {
-      id: exportRecord.data?.id,
+      id: exportRecord.data.id,
       exportType: "clipboard" as const,
       content: note.rendered_text
     };

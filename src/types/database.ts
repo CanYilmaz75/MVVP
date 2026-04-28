@@ -590,7 +590,35 @@ export type Database = {
       >;
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      persist_clinical_note_version: {
+        Args: {
+          p_organisation_id: string;
+          p_consultation_id: string;
+          p_note_id: string | null;
+          p_status: string;
+          p_structured_json: Json;
+          p_rendered_text: string;
+          p_change_source: string;
+          p_created_by: string;
+          p_clear_approval?: boolean;
+        };
+        Returns: { note_id: string; version_number: number }[];
+      };
+      persist_sis_assessment_version: {
+        Args: {
+          p_organisation_id: string;
+          p_consultation_id: string;
+          p_assessment_id: string | null;
+          p_structured_json: Json;
+          p_rendered_text: string;
+          p_source_transcript_id: string | null;
+          p_change_source: "extraction" | "manual_edit" | "regeneration";
+          p_actor_id: string;
+        };
+        Returns: { assessment_id: string; version_number: number }[];
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

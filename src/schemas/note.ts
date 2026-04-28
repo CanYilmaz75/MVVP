@@ -37,6 +37,67 @@ export const soapNoteSchema = z.object({
 
 export type SoapNote = z.infer<typeof soapNoteSchema>;
 
+export const soapNoteJsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["noteType", "language", "sections", "openQuestions", "riskFlags", "requiresReview"],
+  properties: {
+    noteType: { enum: ["SOAP"] },
+    language: { type: "string", minLength: 2 },
+    sections: {
+      type: "object",
+      additionalProperties: false,
+      required: ["subjective", "objective", "assessment", "plan"],
+      properties: {
+        subjective: {
+          type: "object",
+          additionalProperties: false,
+          required: ["chiefComplaint", "historyOfPresentIllness", "reportedSymptoms"],
+          properties: {
+            chiefComplaint: { type: "string" },
+            historyOfPresentIllness: { type: "string" },
+            reportedSymptoms: { type: "array", items: { type: "string", minLength: 1 } }
+          }
+        },
+        objective: {
+          type: "object",
+          additionalProperties: false,
+          required: ["examFindings", "observations", "vitals"],
+          properties: {
+            examFindings: { type: "array", items: { type: "string", minLength: 1 } },
+            observations: { type: "array", items: { type: "string", minLength: 1 } },
+            vitals: { type: "array", items: { type: "string", minLength: 1 } }
+          }
+        },
+        assessment: {
+          type: "object",
+          additionalProperties: false,
+          required: ["clinicalSummary", "possibleDiagnoses"],
+          properties: {
+            clinicalSummary: { type: "string" },
+            possibleDiagnoses: { type: "array", items: { type: "string", minLength: 1 } }
+          }
+        },
+        plan: {
+          type: "object",
+          additionalProperties: false,
+          required: ["medications", "followUp", "referrals", "testsOrdered", "instructions"],
+          properties: {
+            medications: { type: "array", items: { type: "string", minLength: 1 } },
+            followUp: { type: "string" },
+            referrals: { type: "array", items: { type: "string", minLength: 1 } },
+            testsOrdered: { type: "array", items: { type: "string", minLength: 1 } },
+            instructions: { type: "array", items: { type: "string", minLength: 1 } }
+          }
+        }
+      }
+    },
+    openQuestions: { type: "array", items: { type: "string", minLength: 1 } },
+    riskFlags: { type: "array", items: { type: "string", minLength: 1 } },
+    requiresReview: { enum: [true] }
+  }
+} as const;
+
 export const warningSchema = z.object({
   code: z.string(),
   severity: z.enum(["low", "medium", "high"]),

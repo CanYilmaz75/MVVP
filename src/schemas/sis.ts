@@ -26,6 +26,66 @@ export const sisAssessmentSchema = z.object({
   openQuestions: z.array(z.string())
 });
 
+const sisTopicJsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["personView", "observation", "resources", "supportNeeds"],
+  properties: {
+    personView: { type: "string" },
+    observation: { type: "string" },
+    resources: { type: "string" },
+    supportNeeds: { type: "string" }
+  }
+} as const;
+
+const sisRiskJsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["relevant", "level", "notes"],
+  properties: {
+    relevant: { type: "boolean" },
+    level: { enum: ["none", "monitor", "action"] },
+    notes: { type: "string" }
+  }
+} as const;
+
+export const sisAssessmentJsonSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["patientReference", "whatMatters", "topics", "risks", "evaluationFocus", "openQuestions"],
+  properties: {
+    patientReference: { type: "string" },
+    whatMatters: { type: "string" },
+    topics: {
+      type: "object",
+      additionalProperties: false,
+      required: ["cognition", "mobility", "medical", "selfCare", "social", "housing"],
+      properties: {
+        cognition: sisTopicJsonSchema,
+        mobility: sisTopicJsonSchema,
+        medical: sisTopicJsonSchema,
+        selfCare: sisTopicJsonSchema,
+        social: sisTopicJsonSchema,
+        housing: sisTopicJsonSchema
+      }
+    },
+    risks: {
+      type: "object",
+      additionalProperties: false,
+      required: ["fall", "pressureUlcer", "malnutrition", "incontinence", "pain"],
+      properties: {
+        fall: sisRiskJsonSchema,
+        pressureUlcer: sisRiskJsonSchema,
+        malnutrition: sisRiskJsonSchema,
+        incontinence: sisRiskJsonSchema,
+        pain: sisRiskJsonSchema
+      }
+    },
+    evaluationFocus: { type: "string" },
+    openQuestions: { type: "array", items: { type: "string" } }
+  }
+} as const;
+
 export const extractSisSchema = z.object({
   consultationId: z.string().uuid(),
   patientReference: z.string().max(120).optional(),

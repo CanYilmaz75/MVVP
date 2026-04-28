@@ -16,6 +16,8 @@ export const normalizedTranscriptSchema = z.object({
   segments: z.array(transcriptSegmentSchema)
 });
 
+export type NormalizedTranscript = z.infer<typeof normalizedTranscriptSchema>;
+
 export const transcribeConsultationSchema = z.object({
   audioAssetId: z.string().uuid()
 });

@@ -1,11 +1,8 @@
-import { File } from "node:buffer";
-
 import { AppError } from "@/lib/errors";
-import { normalizedTranscriptSchema } from "@/schemas/transcript";
 import { createAuditLog } from "@/server/services/audit-service";
 import { ensureConsultationAccess, updateConsultationStatus } from "@/server/services/consultation-service";
 import { requireApiAuthContext } from "@/server/auth/context";
-import { openai } from "@/server/providers/openai";
+import { clinicalAiProvider } from "@/server/providers/clinical-ai-provider";
 import { adminSupabase } from "@/server/supabase/admin";
 
 const bucket = "consultation-audio";
@@ -60,35 +57,16 @@ export async function transcribeConsultationAudio(consultationId: string, audioA
   }
 
   try {
-    const file = new File(
-      [new Uint8Array(await blobData.arrayBuffer())],
-      audioAsset.storage_path.split("/").pop() ?? "audio.webm",
-      {
-        type: audioAsset.mime_type
-      }
-    );
-
     const fixedLanguage =
       consultation.spoken_language !== "auto" && /^[a-z]{2}$/i.test(consultation.spoken_language)
         ? consultation.spoken_language.toLowerCase()
         : null;
-    const response = await openai.audio.transcriptions.create({
-      file,
-      model: "gpt-4o-mini-transcribe",
-      response_format: "verbose_json",
-      ...(fixedLanguage ? { language: fixedLanguage } : {})
-    });
-
-    const normalized = normalizedTranscriptSchema.parse({
-      rawText: response.text,
-      detectedLanguage: response.language ?? undefined,
-      confidence: typeof response.duration === "number" ? 1 : undefined,
-      segments: (response.segments ?? []).map((segment) => ({
-        speakerLabel: undefined,
-        startMs: segment.start ? Math.round(segment.start * 1000) : undefined,
-        endMs: segment.end ? Math.round(segment.end * 1000) : undefined,
-        text: segment.text
-      }))
+    const normalized = await clinicalAiProvider.transcribeAudio({
+      bytes: new Uint8Array(await blobData.arrayBuffer()),
+      fileName: audioAsset.storage_path.split("/").pop() ?? "audio.webm",
+      mimeType: audioAsset.mime_type,
+      language: fixedLanguage,
+      verbose: true
     });
 
     const { data: transcript } = await supabase
@@ -156,12 +134,12 @@ export async function transcribeInstructionAudio(
   file: { arrayBuffer(): Promise<ArrayBuffer>; name?: string; type?: string },
   mimeType: string
 ) {
-  const response = await openai.audio.transcriptions.create({
-    file: new File([new Uint8Array(await file.arrayBuffer())], file.name || "voice-edit.webm", { type: mimeType }),
-    model: "gpt-4o-mini-transcribe"
+  const text = await clinicalAiProvider.transcribeInstruction({
+    bytes: new Uint8Array(await file.arrayBuffer()),
+    fileName: file.name || "voice-edit.webm",
+    mimeType
   });
 
-  const text = response.text?.trim();
   if (!text) {
     throw new AppError("VOICE_EDIT_TRANSCRIPTION_EMPTY", "Sprachbefehl konnte nicht transkribiert werden.", 400);
   }

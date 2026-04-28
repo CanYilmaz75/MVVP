@@ -8,6 +8,7 @@ import { requireApiAuthContext } from "@/server/auth/context";
 import { adminSupabase } from "@/server/supabase/admin";
 
 const bucket = "consultation-audio";
+const maxSizeDifferenceBytes = 1024;
 
 export async function initiateAudioUpload(
   consultationId: string,
@@ -54,6 +55,11 @@ export async function completeAudioUpload(
     throw new AppError("INVALID_STORAGE_PATH", "Audiopfad ist fuer diese Beratung ungueltig.", 400);
   }
 
+  await assertUploadedObjectMatches(input.storagePath, {
+    mimeType: input.mimeType,
+    fileSizeBytes: input.fileSizeBytes
+  });
+
   const { data, error } = await supabase
     .from("audio_assets")
     .insert({
@@ -88,6 +94,69 @@ export async function completeAudioUpload(
   });
 
   return data;
+}
+
+async function assertUploadedObjectMatches(
+  storagePath: string,
+  expected: {
+    mimeType: string;
+    fileSizeBytes: number;
+  }
+) {
+  const pathParts = storagePath.split("/");
+  const fileName = pathParts.pop();
+  const directory = pathParts.join("/");
+
+  if (!fileName || !directory) {
+    throw new AppError("INVALID_STORAGE_PATH", "Audiopfad ist ungueltig.", 400);
+  }
+
+  const { data, error } = await adminSupabase.storage.from(bucket).list(directory, {
+    limit: 100,
+    search: fileName
+  });
+
+  if (error) {
+    throw new AppError("AUDIO_STORAGE_METADATA_FAILED", "Audio-Metadaten konnten nicht geprueft werden.", 500);
+  }
+
+  const object = data?.find((item: { name: string }) => item.name === fileName);
+  if (!object) {
+    throw new AppError("AUDIO_OBJECT_NOT_FOUND", "Hochgeladene Audiodatei wurde im Storage nicht gefunden.", 400);
+  }
+
+  const metadata = (object.metadata ?? {}) as Record<string, unknown>;
+  const storageSize = typeof metadata.size === "number" ? metadata.size : object.metadata?.["content-length"];
+  const numericStorageSize =
+    typeof storageSize === "number"
+      ? storageSize
+      : typeof storageSize === "string"
+        ? Number(storageSize)
+        : null;
+
+  if (
+    typeof numericStorageSize === "number"
+    && Number.isFinite(numericStorageSize)
+    && Math.abs(numericStorageSize - expected.fileSizeBytes) > maxSizeDifferenceBytes
+  ) {
+    throw new AppError("AUDIO_SIZE_MISMATCH", "Audio-Upload stimmt nicht mit der erwarteten Dateigroesse ueberein.", 400, {
+      expectedFileSizeBytes: expected.fileSizeBytes,
+      storageFileSizeBytes: numericStorageSize
+    });
+  }
+
+  const storageMimeType =
+    metadata.mimetype
+    ?? metadata.mime_type
+    ?? metadata.contentType
+    ?? metadata["content-type"];
+
+  if (typeof storageMimeType === "string" && storageMimeType !== expected.mimeType) {
+    throw new AppError("AUDIO_MIME_MISMATCH", "Audio-Upload stimmt nicht mit dem erwarteten Dateityp ueberein.", 400, {
+      expectedMimeType: expected.mimeType,
+      storageMimeType
+    });
+  }
 }
 
 function mimeExtension(mimeType: string) {

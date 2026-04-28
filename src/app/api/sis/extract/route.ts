@@ -2,8 +2,8 @@ import { apiRoute, apiSuccess, parseJsonBody } from "@/server/api/route";
 import { enforceAiRouteSafety } from "@/lib/ai-guard";
 import { extractSisSchema } from "@/schemas/sis";
 import { requireApiAuthContext } from "@/server/auth/context";
-import { extractAndPersistSisAssessment } from "@/server/services/sis-service";
 import { ensureConsultationAccess } from "@/server/services/consultation-service";
+import { createOrReuseAsyncJob } from "@/server/services/job-service";
 
 export const POST = apiRoute(async ({ request, requestId }) => {
   const auth = await requireApiAuthContext();
@@ -18,7 +18,12 @@ export const POST = apiRoute(async ({ request, requestId }) => {
     featureFlag: "sisExtraction",
     disabledMessage: "KI-gestuetzte SIS-Extraktion ist derzeit deaktiviert."
   });
-  const assessment = await extractAndPersistSisAssessment(body);
+  const job = await createOrReuseAsyncJob({
+    action: "sis-extract",
+    consultationId: body.consultationId,
+    payload: body,
+    idempotencyKey: `${body.consultationId}:${body.patientReference ?? ""}:${body.liveNotes?.length ?? 0}`
+  });
 
-  return apiSuccess(assessment, requestId);
+  return apiSuccess({ job }, requestId, { status: job.status === "completed" ? 200 : 202 });
 });

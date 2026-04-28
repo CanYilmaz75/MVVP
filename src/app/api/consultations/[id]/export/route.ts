@@ -1,9 +1,8 @@
 import { apiRoute, apiSuccess, parseJsonBody } from "@/server/api/route";
 import { exportNoteSchema } from "@/schemas/note";
-import { exportNote } from "@/server/services/export-service";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { requireApiAuthContext } from "@/server/auth/context";
-import { getIdempotentJobResult, storeIdempotentJobResult } from "@/server/services/job-service";
+import { createOrReuseAsyncJob } from "@/server/services/job-service";
 
 export const POST = apiRoute<{ id: string }>(async ({ params, request, requestId }) => {
   const auth = await requireApiAuthContext();
@@ -14,17 +13,15 @@ export const POST = apiRoute<{ id: string }>(async ({ params, request, requestId
     limit: 20
   });
 
-  const cached = await getIdempotentJobResult("export-note", params.id, body.idempotencyKey);
-  if (cached) {
-    return apiSuccess(cached, requestId);
-  }
-
-  const result = await exportNote({
+  const job = await createOrReuseAsyncJob({
+    action: "export-note",
     consultationId: params.id,
-    noteId: body.noteId,
-    exportType: body.exportType
+    payload: {
+      noteId: body.noteId,
+      exportType: body.exportType
+    },
+    idempotencyKey: body.idempotencyKey
   });
 
-  await storeIdempotentJobResult("export-note", params.id, result, body.idempotencyKey);
-  return apiSuccess(result, requestId);
+  return apiSuccess({ job }, requestId, { status: job.status === "completed" ? 200 : 202 });
 });

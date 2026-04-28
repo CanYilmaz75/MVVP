@@ -1,9 +1,8 @@
 import { apiRoute, apiSuccess, parseJsonBody } from "@/server/api/route";
 import { enforceAiRouteSafety } from "@/lib/ai-guard";
-import { generateDraftNote } from "@/server/services/note-service";
 import { generateNoteSchema } from "@/schemas/note";
 import { requireApiAuthContext } from "@/server/auth/context";
-import { getIdempotentJobResult, storeIdempotentJobResult } from "@/server/services/job-service";
+import { createOrReuseAsyncJob } from "@/server/services/job-service";
 import { ensureConsultationAccess } from "@/server/services/consultation-service";
 
 export const POST = apiRoute<{ id: string }>(async ({ params, request, requestId }) => {
@@ -20,18 +19,15 @@ export const POST = apiRoute<{ id: string }>(async ({ params, request, requestId
     disabledMessage: "KI-Notizerstellung ist derzeit deaktiviert."
   });
 
-  const cached = await getIdempotentJobResult("generate-note", params.id, body.idempotencyKey);
-  if (cached) {
-    return apiSuccess(cached, requestId);
-  }
-
-  const result = await generateDraftNote({
+  const job = await createOrReuseAsyncJob({
+    action: "generate-note",
     consultationId: params.id,
-    transcriptId: body.transcriptId,
-    templateId: body.templateId
+    payload: {
+      transcriptId: body.transcriptId,
+      templateId: body.templateId
+    },
+    idempotencyKey: body.idempotencyKey
   });
 
-  await storeIdempotentJobResult("generate-note", params.id, result, body.idempotencyKey);
-
-  return apiSuccess(result, requestId);
+  return apiSuccess({ job }, requestId, { status: job.status === "completed" ? 200 : 202 });
 });

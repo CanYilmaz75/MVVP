@@ -3,25 +3,20 @@ import { assertNoteTransition } from "@/lib/workflow-state";
 import { renderSoapNote } from "@/server/services/note-renderer";
 import { createAuditLog } from "@/server/services/audit-service";
 import { validateNoteAgainstTranscript } from "@/server/services/validation-service";
-import { soapNoteSchema, type SoapNote } from "@/schemas/note";
+import { soapNoteJsonSchema, soapNoteSchema, type SoapNote } from "@/schemas/note";
 import { ensureConsultationAccess, updateConsultationStatus } from "@/server/services/consultation-service";
 import { requireApiAuthContext } from "@/server/auth/context";
-import { openai } from "@/server/providers/openai";
+import { clinicalAiProvider } from "@/server/providers/clinical-ai-provider";
 import { getTemplateDefinitionForGeneration } from "@/features/templates/types";
+import type { Json } from "@/types/database";
 
-async function callJsonModel(systemPrompt: string, userPrompt: string) {
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4.1-mini",
-    response_format: {
-      type: "json_object"
-    },
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt }
-    ]
+async function callJsonModel(systemPrompt: string, userPrompt: string, schemaName = "soap_note") {
+  return clinicalAiProvider.generateJson({
+    schemaName,
+    schema: soapNoteJsonSchema,
+    systemPrompt,
+    userPrompt
   });
-
-  return completion.choices[0]?.message?.content ?? "";
 }
 
 async function parseSoapNoteOrRepair(raw: string) {
@@ -30,10 +25,47 @@ async function parseSoapNoteOrRepair(raw: string) {
   } catch {
     const repaired = await callJsonModel(
       "Du formatierst ungueltiges JSON in gueltiges JSON um, das exakt zum bereitgestellten Schema passt. Fuege keine klinischen Fakten hinzu.",
-      `Schema:\n${JSON.stringify(soapNoteSchema._def, null, 2)}\n\nContent:\n${raw}`
+      `JSON Schema:\n${JSON.stringify(soapNoteJsonSchema, null, 2)}\n\nContent:\n${raw}`,
+      "soap_note_repair"
     );
     return soapNoteSchema.parse(JSON.parse(repaired));
   }
+}
+
+async function persistClinicalNoteVersion(
+  supabase: Awaited<ReturnType<typeof requireApiAuthContext>>["supabase"],
+  input: {
+    organisationId: string;
+    consultationId: string;
+    noteId: string | null;
+    status: "draft" | "edited";
+    structured: SoapNote;
+    rendered: string;
+    changeSource: "generation" | "regeneration" | "post_approval_edit" | "manual_edit" | "voice_edit";
+    createdBy: string;
+  }
+) {
+  const { data, error } = await supabase.rpc("persist_clinical_note_version", {
+    p_organisation_id: input.organisationId,
+    p_consultation_id: input.consultationId,
+    p_note_id: input.noteId,
+    p_status: input.status,
+    p_structured_json: input.structured as Json,
+    p_rendered_text: input.rendered,
+    p_change_source: input.changeSource,
+    p_created_by: input.createdBy,
+    p_clear_approval: true
+  });
+
+  const persisted = data?.[0];
+  if (error || !persisted) {
+    throw new AppError("NOTE_VERSION_PERSIST_FAILED", "Notiz und Version konnten nicht atomar gespeichert werden.", 500);
+  }
+
+  return {
+    noteId: persisted.note_id,
+    versionNumber: persisted.version_number
+  };
 }
 
 function mergeSoapNote(current: SoapNote, patch: Partial<SoapNote>) {
@@ -274,71 +306,31 @@ ${sourceText}
     const rendered = renderSoapNote(structured);
     const warnings = validateNoteAgainstTranscript(structured, sourceText);
 
-    let noteId: string;
-    let versionNumber: number;
     let status: "draft" | "edited";
     let changeSource: "generation" | "regeneration" | "post_approval_edit";
 
     if (!existingNote) {
-      const inserted = await supabase
-        .from("clinical_notes")
-        .insert({
-          organisation_id: organisationId,
-          consultation_id: input.consultationId,
-          current_version: 1,
-          status: "draft",
-          structured_json: structured,
-          rendered_text: rendered
-        })
-        .select("*")
-        .single();
-
-      if (inserted.error || !inserted.data) {
-        throw new AppError("NOTE_CREATE_FAILED", "Notizentwurf konnte nicht erstellt werden.", 500);
-      }
-
-      noteId = inserted.data.id;
-      versionNumber = 1;
       status = "draft";
       changeSource = "generation";
     } else {
-      noteId = existingNote.id;
-      versionNumber = existingNote.current_version + 1;
       status = "edited";
       changeSource = existingNote.status === "approved" ? "post_approval_edit" : "regeneration";
       assertNoteTransition(existingNote.status, status, {
-        noteId,
+        noteId: existingNote.id,
         consultationId: input.consultationId,
         action: "generate"
       });
-
-      const updated = await supabase
-        .from("clinical_notes")
-        .update({
-          current_version: versionNumber,
-          status,
-          structured_json: structured,
-          rendered_text: rendered,
-          approved_by: null,
-          approved_at: null
-        })
-        .eq("id", noteId)
-        .select("id")
-        .single();
-
-      if (updated.error) {
-        throw new AppError("NOTE_UPDATE_FAILED", "Notizentwurf konnte nicht aktualisiert werden.", 500);
-      }
     }
 
-    await supabase.from("clinical_note_versions").insert({
-      organisation_id: organisationId,
-      clinical_note_id: noteId,
-      version_number: versionNumber,
-      structured_json: structured,
-      rendered_text: rendered,
-      change_source: changeSource,
-      created_by: userId
+    const persisted = await persistClinicalNoteVersion(supabase, {
+      organisationId,
+      consultationId: input.consultationId,
+      noteId: existingNote?.id ?? null,
+      status,
+      structured,
+      rendered,
+      changeSource,
+      createdBy: userId
     });
 
     await persistValidationJob(supabase, {
@@ -355,17 +347,17 @@ ${sourceText}
       organisationId,
       actorId: userId,
       entityType: "clinical_note",
-      entityId: noteId,
+      entityId: persisted.noteId,
       action: "note_generated",
       metadata: {
-        versionNumber
+        versionNumber: persisted.versionNumber
       }
     });
 
     return {
-      id: noteId,
+      id: persisted.noteId,
       status,
-      versionNumber,
+      versionNumber: persisted.versionNumber,
       renderedText: rendered,
       structured,
       warnings
@@ -440,7 +432,6 @@ export async function editDraftNote(input: {
     additionalTexts: additionalTexts ?? []
   });
   const warnings = validateNoteAgainstTranscript(nextStructured, sourceText);
-  const versionNumber = currentNote.current_version + 1;
   const changeSource =
     currentNote.status === "approved"
       ? "post_approval_edit"
@@ -455,26 +446,15 @@ export async function editDraftNote(input: {
     action: "edit"
   });
 
-  await supabase
-    .from("clinical_notes")
-    .update({
-      current_version: versionNumber,
-      structured_json: nextStructured,
-      rendered_text: rendered,
-      status: nextStatus,
-      approved_at: null,
-      approved_by: null
-    })
-    .eq("id", input.noteId);
-
-  await supabase.from("clinical_note_versions").insert({
-    organisation_id: organisationId,
-    clinical_note_id: input.noteId,
-    version_number: versionNumber,
-    structured_json: nextStructured,
-    rendered_text: rendered,
-    change_source: changeSource,
-    created_by: userId
+  const persisted = await persistClinicalNoteVersion(supabase, {
+    organisationId,
+    consultationId: input.consultationId,
+    noteId: input.noteId,
+    status: nextStatus,
+    structured: nextStructured,
+    rendered,
+    changeSource,
+    createdBy: userId
   });
 
   await supabase.from("note_edits").insert({
@@ -482,7 +462,7 @@ export async function editDraftNote(input: {
     clinical_note_id: input.noteId,
     instruction_text: input.instructionText ?? "Manuelle strukturierte Bearbeitung",
     instruction_source: input.editMode,
-    result_summary: `${input.editMode} Bearbeitung auf Version ${versionNumber} angewendet`,
+    result_summary: `${input.editMode} Bearbeitung auf Version ${persisted.versionNumber} angewendet`,
     created_by: userId
   });
 
@@ -506,7 +486,7 @@ export async function editDraftNote(input: {
     entityId: input.noteId,
     action: currentNote.status === "approved" ? "post_approval_edit" : "note_edited",
     metadata: {
-      versionNumber,
+      versionNumber: persisted.versionNumber,
       editMode: input.editMode
     }
   });
@@ -514,7 +494,7 @@ export async function editDraftNote(input: {
   return {
     id: input.noteId,
     status: nextStatus,
-    versionNumber,
+    versionNumber: persisted.versionNumber,
     structured: nextStructured,
     renderedText: rendered,
     warnings

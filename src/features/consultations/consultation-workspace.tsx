@@ -145,6 +145,48 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
     }
   }
 
+  async function waitForJob<T>(job: {
+    id: string;
+    status: "queued" | "processing" | "completed" | "failed";
+    result?: unknown;
+    errorMessage?: string | null;
+  }): Promise<T> {
+    let currentJob = job;
+
+    for (let attempt = 0; attempt < 120; attempt += 1) {
+      if (currentJob.status === "completed") {
+        return currentJob.result as T;
+      }
+
+      if (currentJob.status === "failed") {
+        throw new Error(currentJob.errorMessage ?? "Job fehlgeschlagen.");
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, attempt < 5 ? 500 : 1500));
+      const response = await fetch(`/api/jobs/${currentJob.id}`, {
+        cache: "no-store"
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.error?.message ?? "Job-Status konnte nicht geladen werden.");
+      }
+
+      currentJob = payload.data.job;
+    }
+
+    throw new Error("Job laeuft laenger als erwartet. Bitte Arbeitsbereich aktualisieren.");
+  }
+
+  async function startAsyncJob<T>(response: Response, fallbackMessage: string) {
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.error?.message ?? fallbackMessage);
+    }
+
+    return waitForJob<T>(payload.data.job);
+  }
+
   async function uploadAudio(file: File, source: "browser_recording" | "upload") {
     const initiate = await fetch(`/api/consultations/${workspace.consultation.id}/audio/initiate`, {
       method: "POST",
@@ -346,11 +388,7 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
           audioAssetId: workspace.latestAudioAsset?.id
         })
       });
-      const payload = await response.json();
-
-      if (!response.ok) {
-        throw new Error(payload.error?.message ?? "Transkription fehlgeschlagen.");
-      }
+      await startAsyncJob(response, "Transkription fehlgeschlagen.");
 
       await refreshWorkspace();
       setSuccessMessage("Transkript bereit.");
@@ -426,10 +464,7 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
           idempotencyKey: `${workspace.consultation.id}:${transcript?.id ?? "additional-text"}:${workspace.additionalTexts.map((item) => item.id).join(",")}:${workspace.note?.current_version ?? 0}`
         })
       });
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload.error?.message ?? "Notizentwurf konnte nicht erstellt werden.");
-      }
+      await startAsyncJob(response, "Notizentwurf konnte nicht erstellt werden.");
 
       await refreshWorkspace();
       setSuccessMessage("Notizentwurf erstellt.");
@@ -507,10 +542,7 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
           instructionText: voiceInstruction
         })
       });
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload.error?.message ?? "Sprachbearbeitung fehlgeschlagen.");
-      }
+      await startAsyncJob(response, "Sprachbearbeitung fehlgeschlagen.");
 
       await refreshWorkspace();
       setVoiceInstruction("");
@@ -566,12 +598,12 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
           idempotencyKey: `${note.id}:${note.current_version}:clipboard`
         })
       });
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload.error?.message ?? "Export in die Zwischenablage fehlgeschlagen.");
-      }
+      const result = await startAsyncJob<{ content: string }>(
+        response,
+        "Export in die Zwischenablage fehlgeschlagen."
+      );
 
-      await navigator.clipboard.writeText(payload.data.content);
+      await navigator.clipboard.writeText(result.content);
       setSuccessMessage("Freigegebene Notiz in die Zwischenablage kopiert.");
     });
   }
@@ -594,12 +626,9 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
           idempotencyKey: `${note.id}:${note.current_version}:pdf`
         })
       });
-      const payload = await response.json();
-      if (!response.ok) {
-        throw new Error(payload.error?.message ?? "PDF-Export fehlgeschlagen.");
-      }
+      const result = await startAsyncJob<{ downloadUrl: string }>(response, "PDF-Export fehlgeschlagen.");
 
-      window.open(payload.data.downloadUrl, "_blank", "noopener,noreferrer");
+      window.open(result.downloadUrl, "_blank", "noopener,noreferrer");
       setSuccessMessage("PDF-Export bereit.");
     });
   }

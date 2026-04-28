@@ -510,6 +510,48 @@ export function SisWorkspace({
     }
   }
 
+  async function waitForJob<T>(job: {
+    id: string;
+    status: "queued" | "processing" | "completed" | "failed";
+    result?: unknown;
+    errorMessage?: string | null;
+  }): Promise<T> {
+    let currentJob = job;
+
+    for (let attempt = 0; attempt < 120; attempt += 1) {
+      if (currentJob.status === "completed") {
+        return currentJob.result as T;
+      }
+
+      if (currentJob.status === "failed") {
+        throw new Error(currentJob.errorMessage ?? "Job fehlgeschlagen.");
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, attempt < 5 ? 500 : 1500));
+      const response = await fetch(`/api/jobs/${currentJob.id}`, {
+        cache: "no-store"
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.error?.message ?? "Job-Status konnte nicht geladen werden.");
+      }
+
+      currentJob = payload.data.job;
+    }
+
+    throw new Error("Job laeuft laenger als erwartet. Bitte SIS-Sitzung aktualisieren.");
+  }
+
+  async function startAsyncJob<T>(response: Response, fallbackMessage: string) {
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.error?.message ?? fallbackMessage);
+    }
+
+    return waitForJob<T>(payload.data.job);
+  }
+
   async function ensureSisSession() {
     if (sessionId) {
       return sessionId;
@@ -695,10 +737,7 @@ export function SisWorkspace({
       })
     });
 
-    const transcribePayload = await transcribe.json();
-    if (!transcribe.ok) {
-      throw new Error(transcribePayload.error?.message ?? "SIS-Transkription fehlgeschlagen.");
-    }
+    await startAsyncJob(transcribe, "SIS-Transkription fehlgeschlagen.");
 
     const workspaceResponse = await fetch(`/api/consultations/${session}`, {
       cache: "no-store"
@@ -725,12 +764,9 @@ export function SisWorkspace({
       })
     });
 
-    const extractPayload = await extract.json();
-    if (!extract.ok) {
-      throw new Error(extractPayload.error?.message ?? "SIS-Extraktion fehlgeschlagen.");
-    }
+    const extracted = await startAsyncJob<PersistedSisPayload>(extract, "SIS-Extraktion fehlgeschlagen.");
 
-    applyPersistedSis(extractPayload.data);
+    applyPersistedSis(extracted);
     goToStep(topicStepStart);
     setSuccessMessage("SIS wurde aus dem Gespraech strukturiert.");
   }

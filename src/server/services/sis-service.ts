@@ -3,6 +3,7 @@ import { createAuditLog } from "@/server/services/audit-service";
 import { ensureConsultationAccess } from "@/server/services/consultation-service";
 import { requireApiAuthContext } from "@/server/auth/context";
 import {
+  sisAssessmentJsonSchema,
   sisAssessmentSchema,
   type SisAssessment,
   type SisRisk,
@@ -10,7 +11,8 @@ import {
   type SisTopic,
   type SisTopicKey
 } from "@/schemas/sis";
-import { openai } from "@/server/providers/openai";
+import { clinicalAiProvider } from "@/server/providers/clinical-ai-provider";
+import type { Json } from "@/types/database";
 
 const topicKeys: SisTopicKey[] = ["cognition", "mobility", "medical", "selfCare", "social", "housing"];
 const riskKeys: SisRiskKey[] = ["fall", "pressureUlcer", "malnutrition", "incontinence", "pain"];
@@ -229,18 +231,12 @@ function assertSisConsultation(consultation: { consultation_type: string | null;
 }
 
 async function callSisModel(systemPrompt: string, userPrompt: string) {
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4.1-mini",
-    response_format: {
-      type: "json_object"
-    },
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt }
-    ]
+  return clinicalAiProvider.generateJson({
+    schemaName: "sis_assessment",
+    schema: sisAssessmentJsonSchema,
+    systemPrompt,
+    userPrompt
   });
-
-  return completion.choices[0]?.message?.content ?? "";
 }
 
 function parseSisFromModel(raw: string, patientReference?: string) {
@@ -280,86 +276,40 @@ async function persistSisAssessment(input: {
     .eq("consultation_id", input.consultationId)
     .maybeSingle();
 
-  let assessmentId: string;
-  let versionNumber: number;
-
-  if (!existing) {
-    const inserted = await supabase
-      .from("sis_assessments")
-      .insert({
-        organisation_id: organisationId,
-        consultation_id: input.consultationId,
-        current_version: 1,
-        structured_json: normalizedAssessment,
-        rendered_text: renderedText,
-        source_transcript_id: input.sourceTranscriptId ?? null,
-        created_by: userId,
-        updated_by: userId
-      })
-      .select("id, current_version")
-      .single();
-
-    if (inserted.error || !inserted.data) {
-      throw new AppError("SIS_CREATE_FAILED", "SIS konnte nicht gespeichert werden.", 500);
-    }
-
-    assessmentId = inserted.data.id;
-    versionNumber = inserted.data.current_version;
-  } else {
-    versionNumber = existing.current_version + 1;
-    const updated = await supabase
-      .from("sis_assessments")
-      .update({
-        current_version: versionNumber,
-        structured_json: normalizedAssessment,
-        rendered_text: renderedText,
-        source_transcript_id: input.sourceTranscriptId ?? null,
-        updated_by: userId
-      })
-      .eq("id", existing.id)
-      .select("id")
-      .single();
-
-    if (updated.error || !updated.data) {
-      throw new AppError("SIS_UPDATE_FAILED", "SIS konnte nicht aktualisiert werden.", 500);
-    }
-
-    assessmentId = updated.data.id;
-  }
-
-  const versionInsert = await supabase.from("sis_assessment_versions").insert({
-    organisation_id: organisationId,
-    sis_assessment_id: assessmentId,
-    version_number: versionNumber,
-    structured_json: normalizedAssessment,
-    rendered_text: renderedText,
-    source_transcript_id: input.sourceTranscriptId ?? null,
-    change_source: input.changeSource,
-    created_by: userId
+  const { data: persistedRows, error: persistError } = await supabase.rpc("persist_sis_assessment_version", {
+    p_organisation_id: organisationId,
+    p_consultation_id: input.consultationId,
+    p_assessment_id: existing?.id ?? null,
+    p_structured_json: normalizedAssessment as Json,
+    p_rendered_text: renderedText,
+    p_source_transcript_id: input.sourceTranscriptId ?? null,
+    p_change_source: input.changeSource,
+    p_actor_id: userId
   });
 
-  if (versionInsert.error) {
-    throw new AppError("SIS_VERSION_CREATE_FAILED", "SIS-Version konnte nicht gespeichert werden.", 500);
+  const persisted = persistedRows?.[0];
+  if (persistError || !persisted) {
+    throw new AppError("SIS_PERSIST_FAILED", "SIS und Version konnten nicht atomar gespeichert werden.", 500);
   }
 
   await createAuditLog(supabase, {
     organisationId,
     actorId: userId,
     entityType: "sis_assessment",
-    entityId: assessmentId,
+    entityId: persisted.assessment_id,
     action: input.changeSource === "manual_edit" ? "sis_saved" : "sis_extracted",
     metadata: {
       consultationId: input.consultationId,
-      versionNumber,
+      versionNumber: persisted.version_number,
       sourceTranscriptId: input.sourceTranscriptId ?? null,
       changeSource: input.changeSource
     }
   });
 
   return {
-    id: assessmentId,
+    id: persisted.assessment_id,
     consultationId: input.consultationId,
-    currentVersion: versionNumber,
+    currentVersion: persisted.version_number,
     assessment: normalizedAssessment,
     renderedText
   };
