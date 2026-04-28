@@ -4,13 +4,21 @@
 
 Use this checklist before considering the MVP pilot-ready.
 
+## Execution Status
+
+Last local technical execution: 2026-04-28.
+
+Evidence is documented in `08_QA_UAT_EXECUTION_REPORT.md`.
+Local build, typecheck, lint, automated tests, and HTTP smoke tests passed.
+Items that require real users, real provider keys, Supabase staging data, or clinical review remain open for staging UAT.
+
 ---
 
 ## Authentication
 
 - [ ] user can sign in with valid credentials
 - [ ] invalid credentials show safe error
-- [ ] signed-out user cannot access protected routes
+- [x] signed-out user cannot access protected routes
 - [ ] user session persists correctly after refresh
 - [ ] sign out works cleanly
 
@@ -39,9 +47,9 @@ Use this checklist before considering the MVP pilot-ready.
 
 - [ ] browser recording starts and stops
 - [ ] audio upload persists record
-- [ ] unsupported file type is rejected clearly
+- [x] unsupported file type is rejected clearly
 - [ ] oversized file is rejected clearly
-- [ ] stored audio is not public
+- [x] stored audio is not public
 
 ---
 
@@ -58,7 +66,7 @@ Use this checklist before considering the MVP pilot-ready.
 ## Note Generation
 
 - [ ] note generation can be triggered after transcript exists
-- [ ] generated note validates against schema
+- [x] generated note validates against schema
 - [ ] draft badge is visible before approval
 - [ ] note rendering matches structured JSON
 - [ ] invalid provider output does not corrupt DB
@@ -96,7 +104,7 @@ Use this checklist before considering the MVP pilot-ready.
 
 ## Approval
 
-- [ ] approval requires explicit action
+- [x] approval requires explicit action
 - [ ] approved status is visible
 - [ ] approval timestamp persists
 - [ ] approval is audited
@@ -117,8 +125,8 @@ Use this checklist before considering the MVP pilot-ready.
 
 ## Security
 
-- [ ] RLS enforced on all protected tables
-- [ ] service-role key never used in client
+- [x] RLS enforced on all protected tables
+- [x] service-role key never used in client
 - [ ] no sensitive data in analytics payloads
 - [ ] no sensitive raw text in production logs
 - [ ] rate limits block abusive usage safely
@@ -145,8 +153,8 @@ Use this checklist before considering the MVP pilot-ready.
 
 ## Production Build
 
-- [ ] app builds successfully
-- [ ] no TypeScript blocking errors
-- [ ] environment variables documented
-- [ ] migrations reproducible
+- [x] app builds successfully
+- [x] no TypeScript blocking errors
+- [x] environment variables documented
+- [x] migrations reproducible
 - [ ] README explains setup

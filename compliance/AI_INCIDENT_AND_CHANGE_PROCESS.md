@@ -36,6 +36,74 @@ An AI incident is any event where an AI feature causes or could cause:
 9. Close only after accountable owner approval.
 10. Feed lessons learned into the risk register and management review.
 
+## Pilot Triage Model
+
+CAREVO pilot support runs during agreed business hours.
+Critical and High issues must still be escalated to named owners as soon as they are detected.
+
+| Severity | Pilot triage target | Required escalation |
+| --- | --- | --- |
+| Critical | Immediate during business hours | Incident Owner, Security Lead, Data Protection Lead if privacy/data issue, Engineering Lead, Management Representative. |
+| High | Within 4 business hours | Incident Owner, relevant accountable owner, Engineering Lead. |
+| Medium | Next business day | Engineering Lead or AI Owner depending on feature. |
+| Low | Weekly triage | Support owner or Engineering Lead. |
+
+## Incident Bridge
+
+For Critical incidents and High incidents with customer impact:
+
+1. Incident Owner opens an incident bridge using the approved team channel.
+2. Engineering Lead owns technical containment.
+3. Security Lead owns access, logging, storage, and secret containment.
+4. Data Protection Lead owns breach assessment and regulatory/customer notification decision.
+5. Clinical Reviewer owns clinical safety assessment for documentation output issues.
+6. Supplier Owner contacts affected suppliers when the incident may depend on Supabase, OpenAI, Sentry, Upstash, or hosting.
+7. Management Representative receives same-day status for Critical incidents.
+
+## Customer Communication
+
+- Acknowledge Critical/High customer-reported issues with severity, owner, and next update time.
+- Do not confirm or deny a personal data breach before Data Protection Lead triage.
+- Do not include raw transcript, note, audio, patient reference, or screenshots containing health data in email or tickets.
+- For supplier-caused incidents, coordinate customer updates with Supplier Owner.
+- Record customer communications in the incident ticket.
+
+## Privacy And 72-Hour Breach Triage
+
+For any suspected personal data or health data breach:
+
+1. Notify Data Protection Lead immediately.
+2. Record detection time, affected data categories, affected organisations, likely data subjects, and containment status.
+3. Preserve evidence without copying raw health data into general tickets.
+4. Data Protection Lead decides whether regulatory notification, customer notification, or data subject notification is required.
+5. If GDPR notification may be required, track the 72-hour assessment window from first awareness.
+
+## Evidence Handling Rules
+
+Allowed in ordinary tickets:
+
+- request ID
+- route
+- organisation ID
+- user ID
+- Sentry event URL
+- audit action name
+- timestamp range
+- job ID
+- consultation ID when needed for engineering investigation
+
+Not allowed in ordinary tickets:
+
+- raw audio
+- raw transcript text
+- generated note text
+- SIS content
+- patient or resident names/references
+- screenshots with health data
+- secrets or provider keys
+
+If raw health data is required for investigation, the Data Protection Lead and Security Lead must approve a protected evidence location and retention period.
+
 ## Emergency Controls
 
 CAREVO has feature-level disablement patterns for:

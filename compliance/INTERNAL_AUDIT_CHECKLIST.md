@@ -19,10 +19,12 @@ Last reviewed: 2026-04-28
 - [ ] AIMS scope is approved and current.
 - [ ] AI policy is approved and communicated.
 - [ ] AI roles are assigned.
+- [ ] Pilot operating model has named contacts and deputies.
 - [ ] AI risk register is reviewed and current.
 - [ ] AI impact assessments exist for active AI features.
 - [ ] Management review was completed in the review period.
 - [ ] AI incidents and changes are reviewed.
+- [ ] Launch approval protocol is completed before real health data processing.
 
 ## Technical Controls
 
@@ -30,6 +32,9 @@ Last reviewed: 2026-04-28
 - [ ] High-risk broad `for all` policies remain removed or justified.
 - [ ] Private buckets are used for audio and exported PDFs.
 - [ ] Signed URLs are time-limited.
+- [ ] Backup/restore drill has passed in staging.
+- [ ] Rollback drill has passed in staging.
+- [ ] Secret rotation drill has passed in staging.
 - [ ] Audit logs are written for consultation creation/update, audio upload, transcription, note generation, note edit, approval, export, SIS save, and job events.
 - [ ] Clinical notes and SIS assessments create immutable versions.
 - [ ] Export requires approval.
@@ -53,6 +58,7 @@ Last reviewed: 2026-04-28
 - [ ] Legal basis for personal data processing is documented.
 - [ ] Art. 9 basis for health data processing is documented.
 - [ ] DPIA/DSFA is completed for production processing.
+- [ ] 72-hour breach triage workflow and contacts are documented.
 - [ ] DPA/AVV status is current for all processors.
 - [ ] Subprocessors and international transfers are reviewed.
 - [ ] Retention and deletion process is documented and tested.
@@ -66,6 +72,17 @@ Last reviewed: 2026-04-28
 - [ ] Supplier incident notifications are monitored.
 - [ ] Exit plans exist for critical suppliers.
 - [ ] AI provider terms cover production health data use.
+
+## Pilot Operations
+
+- [ ] Dedicated support mailbox or equivalent support intake is active.
+- [ ] GitHub Issue/Project or equivalent internal tracking is ready.
+- [ ] Critical/High escalation route is tested.
+- [ ] Monitoring dashboards are configured for Sentry, Vercel, Supabase, and AI jobs.
+- [ ] Alert rules match `MONITORING_KPIS.md`.
+- [ ] Admin access review is complete.
+- [ ] Support tickets exclude raw health data.
+- [ ] Incident drill was completed before launch.
 
 ## Findings
 

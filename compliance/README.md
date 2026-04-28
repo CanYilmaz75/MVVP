@@ -15,6 +15,13 @@ They provide the management-system structure, control inventory, review routines
 
 ## Documents
 
+- [Pilot Operating Model](./OPERATING_MODEL.md)
+- [Support Runbook](./SUPPORT_RUNBOOK.md)
+- [Backup and Restore Runbook](./BACKUP_RESTORE_RUNBOOK.md)
+- [Secret Rotation Runbook](./SECRET_ROTATION_RUNBOOK.md)
+- [Admin Access Policy](./ADMIN_ACCESS_POLICY.md)
+- [Rollback Runbook](./ROLLBACK_RUNBOOK.md)
+- [Launch Approval Protocol](./LAUNCH_APPROVAL_PROTOCOL.md)
 - [AIMS Policy](./ISO_42001_AIMS_POLICY.md)
 - [Roles and Responsibilities](./AI_ROLES_AND_RESPONSIBILITIES.md)
 - [AI Risk Register](./AI_RISK_REGISTER.md)
@@ -48,3 +55,6 @@ Before production use with real health data, CAREVO should have:
 5. Retention and deletion procedure implemented and tested.
 6. Incident response contacts, severity matrix, and breach notification workflow approved.
 7. Initial internal AIMS audit and management review completed.
+8. Pilot operating model contacts completed with named primary owners and deputies.
+9. Backup/restore, secret rotation, rollback, and monitoring drills passed in staging.
+10. Launch approval protocol signed by accountable owners.

@@ -44,12 +44,13 @@ Health-related consultation data is likely special-category data under GDPR Arti
 | Breach response | AIMS incident process drafted. | Need GDPR breach notification procedure. | High | Add 72-hour triage workflow and contact list. | DPL / Incident Owner | Open |
 | Consent/user notice | Not clear. | If relying on consent for any processing, needs valid capture and withdrawal mechanism. | High | Avoid consent unless appropriate, or implement properly. | DPL | Open |
 | Records of processing | Not present. | Need RoPA/Verzeichnis Verarbeitungstaetigkeiten where required. | Medium-High | Create RoPA. | DPL | Open |
+| Operating model | Pilot operating model drafted. | Named contacts, support channel, drills, and launch sign-off must be completed. | High | Complete `OPERATING_MODEL.md` and `LAUNCH_APPROVAL_PROTOCOL.md` before real health data use. | Management / DPL / Security | Open |
 
 ## Current Technical Measures
 
 | Measure | Evidence |
 | --- | --- |
-| Authenticated protected routes | `src/server/auth/context.ts`, `middleware.ts` |
+| Authenticated protected routes | `src/server/auth/context.ts`, `src/middleware.ts` |
 | Tenant isolation | `public.current_user_organisation_id()`, RLS migrations |
 | Role-aware policies | `supabase/migrations/0005_pilot_hardening.sql` |
 | Private storage buckets | `supabase/migrations/0001_initial.sql` |
@@ -76,6 +77,9 @@ Health-related consultation data is likely special-category data under GDPR Arti
 - [ ] Breach response procedure approved.
 - [ ] Production admin access policy approved.
 - [ ] Security review completed before launch.
+- [ ] Operating contacts and support channel approved.
+- [ ] Backup/restore, secret rotation, rollback, and monitoring drills completed.
+- [ ] Launch approval protocol signed.
 
 ## Recommended Next Documents
 

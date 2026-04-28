@@ -5,6 +5,8 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { getAuthContext } from "@/server/auth/context";
 import { listPausedConsultations } from "@/server/services/consultation-service";
 
+export const dynamic = "force-dynamic";
+
 function titleForPath(path: string) {
   if (path.startsWith("/consultations/") && !path.endsWith("/consultations")) {
     return {

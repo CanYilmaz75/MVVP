@@ -27,6 +27,9 @@ Last reviewed: 2026-04-28
 - GDPR gap assessment updates.
 - Customer/user feedback and clinical review findings.
 - Resource or training needs.
+- Pilot operating model contacts and escalation readiness.
+- Backup/restore, secret rotation, rollback, and monitoring drill results.
+- Launch approval status and accepted residual risks.
 
 ## KPI Review
 
@@ -39,6 +42,10 @@ Last reviewed: 2026-04-28
 | AI incident count | TBD | TBD | TBD | TBD |
 | Sensitive logging findings | TBD | TBD | 0 | TBD |
 | RLS regression test status | TBD | TBD | 100% pass | TBD |
+| Backup/restore drill status | TBD | TBD | Pass before launch | TBD |
+| Secret rotation drill status | TBD | TBD | Pass before launch | TBD |
+| Rollback drill status | TBD | TBD | Pass before launch | TBD |
+| Critical/High incident response target met | TBD | TBD | 100% for pilot incidents | TBD |
 
 ## Risk Review
 
@@ -67,6 +74,20 @@ Last reviewed: 2026-04-28
 | Sentry | TBD | TBD |
 | Upstash | TBD | TBD |
 | Hosting provider | TBD | TBD |
+
+## Launch Readiness Review
+
+| Gate | Status | Notes |
+| --- | --- | --- |
+| Operating model contacts named | TBD | TBD |
+| Support channel active | TBD | TBD |
+| Incident and breach triage contacts ready | TBD | TBD |
+| Monitoring dashboards and alerts active | TBD | TBD |
+| Admin access reviewed | TBD | TBD |
+| Backup/restore drill passed | TBD | TBD |
+| Secret rotation drill passed | TBD | TBD |
+| Rollback drill passed | TBD | TBD |
+| Launch approval protocol signed | TBD | TBD |
 
 ## Decisions
 

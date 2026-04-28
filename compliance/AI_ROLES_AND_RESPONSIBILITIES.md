@@ -47,6 +47,21 @@ Legend: R = Responsible, A = Accountable, C = Consulted, I = Informed.
 | Incident Owner | TBD | Open |
 | Supplier Owner | TBD | Open |
 
+## Pilot Launch Assignment Gate
+
+The controlled pilot must not process real health data while any of these roles remain unassigned:
+
+- Management Representative.
+- AI System Owner.
+- Data Protection Lead.
+- Security Lead.
+- Clinical Reviewer.
+- Engineering Lead.
+- Incident Owner.
+- Supplier Owner.
+
+Each launch-critical role must have a primary owner and deputy recorded in `OPERATING_MODEL.md`.
+
 ## Separation of Duties
 
 - The person approving clinical output should not be an automated system.
