@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { Route } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -22,8 +23,9 @@ export const metadata: Metadata = {
     "CAREVO reduziert Dokumentationsaufwand in der Pflege- und Versorgungsindustrie mit deutschsprachigen Entwuerfen, klaren Freigaben und auditierbaren Schritten."
 };
 
-const navigation = [
+const navigation: Array<{ label: string; href: `#${string}` | Route }> = [
   { label: "Kunden", href: "#kunden" },
+  { label: "Preise", href: "/preise" as Route },
   { label: "Stimmen", href: "#stimmen" },
   { label: "Sicherheit", href: "#sicherheit" }
 ];
@@ -116,6 +118,7 @@ const footerColumns = {
   produkt: [
     { label: "Zur App", href: "/dashboard" },
     { label: "Kunden", href: "#kunden" },
+    { label: "Preise", href: "/preise" },
     { label: "Sicherheit", href: "#sicherheit" }
   ],
   rechtliches: [
@@ -157,9 +160,15 @@ export default function HomePage() {
 
           <nav className="hidden items-center gap-8 md:flex">
             {navigation.map((item) => (
-              <a key={item.label} href={item.href} className="text-sm text-stone-700 transition-colors hover:text-stone-950">
-                {item.label}
-              </a>
+              item.href.startsWith("/") ? (
+                <Link key={item.label} href={item.href} className="text-sm text-stone-700 transition-colors hover:text-stone-950">
+                  {item.label}
+                </Link>
+              ) : (
+                <a key={item.label} href={item.href} className="text-sm text-stone-700 transition-colors hover:text-stone-950">
+                  {item.label}
+                </a>
+              )
             ))}
           </nav>
 

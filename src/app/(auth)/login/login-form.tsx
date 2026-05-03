@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import type { Route } from "next";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { createClient } from "@/server/supabase/browser";
@@ -91,6 +92,12 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
           </Button>
           <p className="text-sm leading-6 text-muted-foreground">
             Die Passwort-zuruecksetzen-Funktion wird ueber die Supabase-Auth-Konfiguration gesteuert.
+          </p>
+          <p className="text-sm leading-6 text-muted-foreground">
+            Neue kleine Praxis oder Einrichtung?{" "}
+            <Link href="/signup" className="font-medium text-foreground underline underline-offset-4">
+              Self-Service registrieren
+            </Link>
           </p>
         </form>
       </div>

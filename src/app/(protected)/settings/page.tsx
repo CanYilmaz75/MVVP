@@ -3,9 +3,12 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getAuthContext } from "@/server/auth/context";
+import { getTeamOverview } from "@/server/services/team-service";
+import { TeamBillingManager } from "./team-billing-manager";
 
 export default async function SettingsPage() {
   const auth = await getAuthContext();
+  const teamData = auth.profile.role === "admin" ? await getTeamOverview() : null;
 
   return (
     <div className="grid gap-6 xl:grid-cols-2">
@@ -33,6 +36,12 @@ export default async function SettingsPage() {
           <p className="text-muted-foreground">
             {auth.organisationName}
           </p>
+          <p>
+            <span className="font-medium">Kundentyp:</span> {auth.organisation.customer_type}
+          </p>
+          <p>
+            <span className="font-medium">Abrechnung:</span> {auth.organisation.billing_mode}
+          </p>
         </CardContent>
       </Card>
       <Card>
@@ -48,6 +57,18 @@ export default async function SettingsPage() {
           </Button>
         </CardContent>
       </Card>
+      {teamData ? (
+        <TeamBillingManager initialData={teamData} />
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Team und Abo</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground">
+            Team- und Abo-Verwaltung ist fuer Admins verfuegbar.
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

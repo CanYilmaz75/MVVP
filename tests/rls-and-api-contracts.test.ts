@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const migration = readFileSync(join(process.cwd(), "supabase/migrations/0005_pilot_hardening.sql"), "utf8");
+const b2bMigration = readFileSync(join(process.cwd(), "supabase/migrations/0006_b2b_saas_billing.sql"), "utf8");
 
 test("pilot RLS migration removes broad tenant all-policies for high-risk tables", () => {
   for (const policyName of [
@@ -38,4 +39,38 @@ test("critical write chains have transactional database helpers", () => {
 test("idempotent async jobs are protected by a database uniqueness constraint", () => {
   assert.match(migration, /idx_jobs_async_unique/);
   assert.match(migration, /where job_type like 'async:%'/);
+});
+
+test("b2b SaaS migration adds billing and team administration tables", () => {
+  for (const tableName of [
+    "plans",
+    "subscriptions",
+    "billing_seat_events",
+    "organisation_invites",
+    "enterprise_requests"
+  ]) {
+    assert.match(b2bMigration, new RegExp(`create table if not exists public\\.${tableName}`));
+    assert.match(b2bMigration, new RegExp(`alter table public\\.${tableName} enable row level security`));
+  }
+
+  assert.match(b2bMigration, /add column if not exists status text not null default 'active'/);
+  assert.match(b2bMigration, /self_service_seat_limit/);
+});
+
+test("b2b SaaS migration protects team and billing writes with admin policies", () => {
+  assert.match(b2bMigration, /organisation_invites_admin_insert/);
+  assert.match(b2bMigration, /enterprise_requests_admin_insert/);
+  assert.match(b2bMigration, /subscriptions_admin_insert/);
+  assert.match(b2bMigration, /billing_seat_events_admin_insert/);
+  assert.match(b2bMigration, /profiles_admin_update_org/);
+  assert.match(b2bMigration, /current_user_is_admin\(\)/);
+});
+
+test("b2b SaaS signup trigger handles invites and creates first-admin subscriptions", () => {
+  assert.match(b2bMigration, /new\.raw_user_meta_data->>'invite_token'/);
+  assert.match(b2bMigration, /status = 'accepted'/);
+  assert.match(b2bMigration, /active_seat_count >= seat_limit/);
+  assert.match(b2bMigration, /'admin'/);
+  assert.match(b2bMigration, /insert into public\.subscriptions/);
+  assert.match(b2bMigration, /insert into public\.billing_seat_events/);
 });

@@ -11,9 +11,33 @@ export type Database = {
   public: {
     Tables: {
       organisations: TableDefinition<
-        { id: string; name: string; slug: string; created_at: string },
-        { id?: string; name: string; slug: string; created_at?: string },
-        { id?: string; name?: string; slug?: string; created_at?: string }
+        {
+          id: string;
+          name: string;
+          slug: string;
+          customer_type: "self_service" | "enterprise";
+          billing_mode: "automatic" | "manual_contract";
+          enterprise_status: "none" | "requested" | "active";
+          created_at: string;
+        },
+        {
+          id?: string;
+          name: string;
+          slug: string;
+          customer_type?: "self_service" | "enterprise";
+          billing_mode?: "automatic" | "manual_contract";
+          enterprise_status?: "none" | "requested" | "active";
+          created_at?: string;
+        },
+        {
+          id?: string;
+          name?: string;
+          slug?: string;
+          customer_type?: "self_service" | "enterprise";
+          billing_mode?: "automatic" | "manual_contract";
+          enterprise_status?: "none" | "requested" | "active";
+          created_at?: string;
+        }
       >;
       profiles: TableDefinition<
         {
@@ -22,6 +46,7 @@ export type Database = {
           full_name: string | null;
           role: "clinician" | "admin";
           specialty: string | null;
+          status: "active" | "inactive" | "invited";
           created_at: string;
           updated_at: string;
         },
@@ -31,6 +56,7 @@ export type Database = {
           full_name?: string | null;
           role?: "clinician" | "admin";
           specialty?: string | null;
+          status?: "active" | "inactive" | "invited";
           created_at?: string;
           updated_at?: string;
         },
@@ -39,6 +65,7 @@ export type Database = {
           full_name?: string | null;
           role?: "clinician" | "admin";
           specialty?: string | null;
+          status?: "active" | "inactive" | "invited";
           updated_at?: string;
         }
       >;
@@ -584,6 +611,205 @@ export type Database = {
           key?: string;
           enabled?: boolean;
           config?: Json;
+          created_at?: string;
+          updated_at?: string;
+        }
+      >;
+      plans: TableDefinition<
+        {
+          id: string;
+          name: string;
+          billing_mode: "automatic" | "manual_contract";
+          base_price_cents: number;
+          included_seats: number;
+          seat_price_cents: number;
+          self_service_seat_limit: number | null;
+          active: boolean;
+          created_at: string;
+        },
+        {
+          id: string;
+          name: string;
+          billing_mode?: "automatic" | "manual_contract";
+          base_price_cents?: number;
+          included_seats?: number;
+          seat_price_cents?: number;
+          self_service_seat_limit?: number | null;
+          active?: boolean;
+          created_at?: string;
+        },
+        {
+          id?: string;
+          name?: string;
+          billing_mode?: "automatic" | "manual_contract";
+          base_price_cents?: number;
+          included_seats?: number;
+          seat_price_cents?: number;
+          self_service_seat_limit?: number | null;
+          active?: boolean;
+          created_at?: string;
+        }
+      >;
+      subscriptions: TableDefinition<
+        {
+          id: string;
+          organisation_id: string;
+          plan_id: string;
+          status: "trialing" | "active" | "past_due" | "canceled" | "enterprise_pending";
+          billing_provider: string;
+          provider_customer_id: string | null;
+          provider_subscription_id: string | null;
+          active_seats: number;
+          current_period_start: string | null;
+          current_period_end: string | null;
+          created_at: string;
+          updated_at: string;
+        },
+        {
+          id?: string;
+          organisation_id: string;
+          plan_id: string;
+          status?: "trialing" | "active" | "past_due" | "canceled" | "enterprise_pending";
+          billing_provider?: string;
+          provider_customer_id?: string | null;
+          provider_subscription_id?: string | null;
+          active_seats?: number;
+          current_period_start?: string | null;
+          current_period_end?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        },
+        {
+          id?: string;
+          organisation_id?: string;
+          plan_id?: string;
+          status?: "trialing" | "active" | "past_due" | "canceled" | "enterprise_pending";
+          billing_provider?: string;
+          provider_customer_id?: string | null;
+          provider_subscription_id?: string | null;
+          active_seats?: number;
+          current_period_start?: string | null;
+          current_period_end?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        }
+      >;
+      billing_seat_events: TableDefinition<
+        {
+          id: string;
+          organisation_id: string;
+          subscription_id: string | null;
+          actor_id: string | null;
+          previous_active_seats: number;
+          new_active_seats: number;
+          reason: "signup" | "member_activated" | "member_deactivated" | "sync";
+          metadata: Json;
+          created_at: string;
+        },
+        {
+          id?: string;
+          organisation_id: string;
+          subscription_id?: string | null;
+          actor_id?: string | null;
+          previous_active_seats: number;
+          new_active_seats: number;
+          reason: "signup" | "member_activated" | "member_deactivated" | "sync";
+          metadata?: Json;
+          created_at?: string;
+        },
+        {
+          id?: string;
+          organisation_id?: string;
+          subscription_id?: string | null;
+          actor_id?: string | null;
+          previous_active_seats?: number;
+          new_active_seats?: number;
+          reason?: "signup" | "member_activated" | "member_deactivated" | "sync";
+          metadata?: Json;
+          created_at?: string;
+        }
+      >;
+      organisation_invites: TableDefinition<
+        {
+          id: string;
+          organisation_id: string;
+          email: string;
+          full_name: string | null;
+          role: "clinician" | "admin";
+          status: "pending" | "accepted" | "revoked" | "expired";
+          token_hash: string;
+          invited_by: string | null;
+          accepted_by: string | null;
+          expires_at: string;
+          accepted_at: string | null;
+          created_at: string;
+          updated_at: string;
+        },
+        {
+          id?: string;
+          organisation_id: string;
+          email: string;
+          full_name?: string | null;
+          role?: "clinician" | "admin";
+          status?: "pending" | "accepted" | "revoked" | "expired";
+          token_hash: string;
+          invited_by?: string | null;
+          accepted_by?: string | null;
+          expires_at?: string;
+          accepted_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        },
+        {
+          id?: string;
+          organisation_id?: string;
+          email?: string;
+          full_name?: string | null;
+          role?: "clinician" | "admin";
+          status?: "pending" | "accepted" | "revoked" | "expired";
+          token_hash?: string;
+          invited_by?: string | null;
+          accepted_by?: string | null;
+          expires_at?: string;
+          accepted_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        }
+      >;
+      enterprise_requests: TableDefinition<
+        {
+          id: string;
+          organisation_id: string;
+          requested_by: string | null;
+          desired_seats: number;
+          contact_name: string;
+          contact_email: string;
+          message: string | null;
+          status: "open" | "in_review" | "closed";
+          created_at: string;
+          updated_at: string;
+        },
+        {
+          id?: string;
+          organisation_id: string;
+          requested_by?: string | null;
+          desired_seats: number;
+          contact_name: string;
+          contact_email: string;
+          message?: string | null;
+          status?: "open" | "in_review" | "closed";
+          created_at?: string;
+          updated_at?: string;
+        },
+        {
+          id?: string;
+          organisation_id?: string;
+          requested_by?: string | null;
+          desired_seats?: number;
+          contact_name?: string;
+          contact_email?: string;
+          message?: string | null;
+          status?: "open" | "in_review" | "closed";
           created_at?: string;
           updated_at?: string;
         }
