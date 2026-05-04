@@ -133,39 +133,38 @@ const footerColumns = {
 } as const;
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
-  return <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-500">{children}</p>;
+  return <p className="text-xs font-semibold uppercase tracking-normal text-muted-foreground">{children}</p>;
 }
 
 export default function HomePage() {
   return (
     <main
-      className="min-h-screen bg-[#f7f3ec] text-stone-950"
-      style={{ fontFamily: '"Avenir Next", "Segoe UI", sans-serif' }}
+      className="min-h-screen bg-background text-foreground"
     >
-      <div className="border-b border-stone-200 bg-[#f1ebe2]">
-        <div className="mx-auto flex max-w-7xl items-center justify-center px-6 py-3 text-center text-sm text-stone-700 sm:px-8 lg:px-10">
+      <div className="border-b border-border bg-secondary">
+        <div className="mx-auto flex max-w-7xl items-center justify-center px-4 py-3 text-center text-sm text-secondary-foreground sm:px-8 lg:px-12 xl:px-20">
           CAREVO ist fuer die Pflege- und Versorgungsindustrie gebaut: ruhig im Auftritt, klar in der Verantwortung.
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-10">
-        <header className="flex items-center justify-between border-b border-stone-200 py-6">
+      <div className="carevo-container">
+        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border py-5 sm:py-6">
           <Link href="/" className="flex items-center gap-3">
-            <LogoMark className="bg-stone-950 text-[#f7f3ec]" />
+            <LogoMark className="bg-primary text-primary-foreground" />
             <div>
-              <p className="text-sm font-semibold tracking-[0.24em] text-stone-950">CAREVO</p>
-              <p className="text-xs text-stone-500">Dokumentation fuer Pflege und Versorgung</p>
+              <p className="text-sm font-semibold tracking-normal text-foreground">CAREVO</p>
+              <p className="text-xs text-muted-foreground">Dokumentation fuer Pflege und Versorgung</p>
             </div>
           </Link>
 
-          <nav className="hidden items-center gap-8 md:flex">
+          <nav className="order-3 flex w-full gap-2 overflow-x-auto border-t border-border pt-4 md:order-none md:w-auto md:border-t-0 md:pt-0">
             {navigation.map((item) => (
               item.href.startsWith("/") ? (
-                <Link key={item.label} href={item.href} className="text-sm text-stone-700 transition-colors hover:text-stone-950">
+                <Link key={item.label} href={item.href} className="min-h-11 shrink-0 rounded-lg px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground">
                   {item.label}
                 </Link>
               ) : (
-                <a key={item.label} href={item.href} className="text-sm text-stone-700 transition-colors hover:text-stone-950">
+                <a key={item.label} href={item.href} className="min-h-11 shrink-0 rounded-lg px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground">
                   {item.label}
                 </a>
               )
@@ -173,32 +172,31 @@ export default function HomePage() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <Button asChild variant="ghost" className="hidden text-stone-700 hover:bg-transparent hover:text-stone-950 sm:inline-flex">
+            <Button asChild variant="ghost" className="hidden text-secondary-foreground hover:bg-transparent hover:text-foreground sm:inline-flex">
               <Link href="/demo-buchen">Demo buchen</Link>
             </Button>
-            <Button asChild className="rounded-full bg-stone-950 px-5 text-[#f7f3ec] hover:bg-stone-800">
+            <Button asChild className="px-4">
               <Link href="/dashboard">Zur App</Link>
             </Button>
           </div>
         </header>
 
-        <section className="border-b border-stone-200 py-20 sm:py-24">
+        <section className="border-b border-border py-20 sm:py-24">
           <div className="mx-auto max-w-4xl text-center">
             <Eyebrow>Dokumentation fuer Pflege und Versorgung</Eyebrow>
             <h1
-              className="mt-6 text-5xl font-semibold leading-[0.96] tracking-[-0.05em] text-stone-950 sm:text-6xl lg:text-7xl"
-              style={{ fontFamily: '"Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif' }}
+              className="mt-6 carevo-h1"
             >
               Weniger Dokumentationslast.
               <span className="block">Mehr Zeit fuer die naechste Versorgung.</span>
             </h1>
-            <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-stone-700 sm:text-xl">
+            <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-secondary-foreground sm:text-xl">
               CAREVO hilft Einrichtungen, Diensten und Traegern, schneller von Audio und Kontext zu einer pruefbaren,
               deutschsprachigen Dokumentation zu kommen. Mit klaren Freigaben, auditierbaren Schritten und einem
               ruhigen Produktfluss.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Button asChild size="lg" className="h-12 rounded-full bg-stone-950 px-7 text-[#f7f3ec] hover:bg-stone-800">
+              <Button asChild size="lg" className="h-12 px-7">
                 <Link href="/dashboard">
                   Zur App
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -208,7 +206,7 @@ export default function HomePage() {
                 asChild
                 size="lg"
                 variant="ghost"
-                className="h-12 rounded-full border border-stone-300 px-7 text-stone-900 hover:bg-stone-100"
+                className="h-12 rounded-lg border border-border px-7 text-foreground hover:bg-secondary"
               >
                 <Link href="/demo-buchen">Demo buchen</Link>
               </Button>
@@ -216,16 +214,16 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="border-b border-stone-200 py-10">
+        <section className="border-b border-border py-10">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
               <Eyebrow>Vorbereitet fuer Logos und Pilotpartner</Eyebrow>
-              <p className="mt-3 text-base leading-7 text-stone-700">
+              <p className="mt-3 text-base leading-7 text-secondary-foreground">
                 Die Struktur ist bewusst wie eine echte Customer Wall angelegt, damit spaetere Referenzen direkt an
                 den richtigen Stellen sitzen.
               </p>
             </div>
-            <a href="#stimmen" className="inline-flex items-center gap-2 text-sm font-medium text-stone-900">
+            <a href="#stimmen" className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
               Zu den Kundenstimmen
               <ChevronRight className="h-4 w-4" />
             </a>
@@ -233,68 +231,66 @@ export default function HomePage() {
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {logoSlots.map((slot) => (
-              <div key={slot.name} className="rounded-[1.5rem] border border-stone-200 bg-white px-5 py-6">
-                <div className="flex h-12 items-center justify-center rounded-xl border border-dashed border-stone-300 text-sm font-medium text-stone-400">
+              <div key={slot.name} className="rounded-lg border border-border bg-card px-5 py-6">
+                <div className="flex h-12 items-center justify-center rounded-lg border border-dashed border-border text-sm font-medium text-muted-foreground">
                   {slot.name}
                 </div>
-                <p className="mt-3 text-sm text-stone-500">{slot.subline}</p>
+                <p className="mt-3 text-sm text-muted-foreground">{slot.subline}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section id="kunden" className="grid gap-12 border-b border-stone-200 py-20 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
+        <section id="kunden" className="grid gap-12 border-b border-border py-20 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
           <div className="max-w-xl">
             <Eyebrow>Kunden</Eyebrow>
             <h2
-              className="mt-5 text-4xl font-semibold leading-tight tracking-[-0.04em] text-stone-950 sm:text-5xl"
-              style={{ fontFamily: '"Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif' }}
+              className="mt-5 carevo-h2"
             >
               CAREVO ist fuer Teams gebaut, die unter echter Dokumentationslast arbeiten.
             </h2>
-            <p className="mt-5 text-lg leading-8 text-stone-700">
+            <p className="mt-5 text-lg leading-8 text-secondary-foreground">
               Nicht fuer Demo-Effekte, sondern fuer Pflegeeinrichtungen, ambulante Dienste, Traeger und
               Versorgungsteams, die einen klaren Weg von der Aufnahme bis zur Freigabe brauchen.
             </p>
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
               {useCases.map((item) => (
-                <div key={item} className="flex items-center gap-3 rounded-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-700">
-                  <CheckCircle2 className="h-4 w-4 text-stone-500" />
+                <div key={item} className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm text-secondary-foreground">
+                  <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
                   {item}
                 </div>
               ))}
             </div>
           </div>
 
-          <Card className="rounded-[2rem] border-stone-200 bg-white shadow-none">
+          <Card className="rounded-lg border-border bg-card shadow-none">
             <CardContent className="p-8 sm:p-10">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-stone-950 text-[#f7f3ec]">
+              <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <Quote className="h-5 w-5" />
               </div>
-              <p className="mt-8 text-2xl leading-[1.5] tracking-[-0.02em] text-stone-900">
+              <p className="mt-8 text-2xl leading-[1.5] tracking-normal text-foreground">
                 {featuredQuote.quote}
               </p>
-              <div className="mt-10 border-t border-stone-200 pt-6">
-                <p className="font-semibold text-stone-950">{featuredQuote.author}</p>
-                <p className="mt-1 text-sm text-stone-600">{featuredQuote.role}</p>
-                <p className="mt-1 text-sm text-stone-500">{featuredQuote.organisation}</p>
+              <div className="mt-10 border-t border-border pt-6">
+                <p className="font-semibold text-foreground">{featuredQuote.author}</p>
+                <p className="mt-1 text-sm text-secondary-foreground">{featuredQuote.role}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{featuredQuote.organisation}</p>
               </div>
             </CardContent>
           </Card>
         </section>
 
-        <section id="stimmen" className="border-b border-stone-200 py-20">
+        <section id="stimmen" className="border-b border-border py-20">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <Eyebrow>Stimmen</Eyebrow>
               <h2
-                className="mt-5 text-4xl font-semibold leading-tight tracking-[-0.04em] text-stone-950 sm:text-5xl"
-                style={{ fontFamily: '"Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif' }}
+                className="mt-5 carevo-h2"
               >
                 Vorbereitet fuer echte Aussagen aus der Pflege- und Versorgungsindustrie.
               </h2>
             </div>
-            <p className="max-w-xl text-base leading-7 text-stone-700">
+            <p className="max-w-xl text-base leading-7 text-secondary-foreground">
               Statt erfundener Testimonials stehen hier bewusst Slots, die spaeter mit freigegebenen Kundenstimmen
               gefuellt werden koennen.
             </p>
@@ -302,16 +298,16 @@ export default function HomePage() {
 
           <div className="mt-10 grid gap-5 lg:grid-cols-3">
             {testimonials.map((item) => (
-              <Card key={item.organisation} className="rounded-[1.75rem] border-stone-200 bg-white shadow-none">
+              <Card key={item.organisation} className="rounded-lg border-border bg-card shadow-none">
                 <CardContent className="p-7">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-100">
-                    <Quote className="h-5 w-5 text-stone-700" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary">
+                    <Quote className="h-5 w-5 text-secondary-foreground" />
                   </div>
-                  <p className="mt-6 text-lg leading-8 text-stone-800">{item.quote}</p>
-                  <div className="mt-8 border-t border-stone-200 pt-5">
-                    <p className="font-semibold text-stone-950">{item.author}</p>
-                    <p className="mt-1 text-sm text-stone-600">{item.role}</p>
-                    <p className="mt-1 text-sm text-stone-500">{item.organisation}</p>
+                  <p className="mt-6 text-lg leading-8 text-foreground">{item.quote}</p>
+                  <div className="mt-8 border-t border-border pt-5">
+                    <p className="font-semibold text-foreground">{item.author}</p>
+                    <p className="mt-1 text-sm text-secondary-foreground">{item.role}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{item.organisation}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -319,18 +315,17 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="border-b border-stone-200 py-20">
+        <section className="border-b border-border py-20">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <Eyebrow>Realer Nutzen</Eyebrow>
               <h2
-                className="mt-5 text-4xl font-semibold leading-tight tracking-[-0.04em] text-stone-950 sm:text-5xl"
-                style={{ fontFamily: '"Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif' }}
+                className="mt-5 carevo-h2"
               >
                 Die besten Referenzen sind keine Claims, sondern spaetere Kundengeschichten.
               </h2>
             </div>
-            <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-medium text-stone-900">
+            <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
               Produkt oeffnen
               <ChevronRight className="h-4 w-4" />
             </Link>
@@ -338,25 +333,24 @@ export default function HomePage() {
 
           <div className="mt-10 grid gap-5 lg:grid-cols-3">
             {storyCards.map((card) => (
-              <div key={card.title} className="rounded-[1.75rem] border border-stone-200 bg-white p-7">
-                <div className="h-48 rounded-[1.25rem] bg-[linear-gradient(135deg,#ebe3d7,#f8f4ed)]" />
-                <h3 className="mt-6 text-2xl font-semibold tracking-[-0.03em] text-stone-950">{card.title}</h3>
-                <p className="mt-4 text-base leading-7 text-stone-700">{card.description}</p>
+              <div key={card.title} className="rounded-lg border border-border bg-card p-7">
+                <div className="h-48 rounded-lg border border-border bg-secondary" />
+                <h3 className="mt-6 text-2xl font-semibold tracking-normal text-foreground">{card.title}</h3>
+                <p className="mt-4 text-base leading-7 text-secondary-foreground">{card.description}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section id="sicherheit" className="border-b border-stone-200 py-20">
+        <section id="sicherheit" className="border-b border-border py-20">
           <div className="max-w-3xl">
             <Eyebrow>Sicherheit</Eyebrow>
             <h2
-              className="mt-5 text-4xl font-semibold leading-tight tracking-[-0.04em] text-stone-950 sm:text-5xl"
-              style={{ fontFamily: '"Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif' }}
+              className="mt-5 carevo-h2"
             >
               Sicherheits- und Kontrollprinzipien, die B2B-Kaeufer sofort einordnen koennen.
             </h2>
-            <p className="mt-5 text-lg leading-8 text-stone-700">
+            <p className="mt-5 text-lg leading-8 text-secondary-foreground">
               CAREVO kommuniziert Sicherheit bewusst nicht als Marketingfolie, sondern als Produktverhalten: klar,
               konkret und nachvollziehbar.
             </p>
@@ -364,55 +358,54 @@ export default function HomePage() {
 
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {securityCards.map((card) => (
-              <div key={card.title} className="rounded-[1.75rem] border border-stone-200 bg-white p-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-100">
+              <div key={card.title} className="rounded-lg border border-border bg-card p-6">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary">
                   {card.title === "Geschuetzte Bereiche" ? (
-                    <ShieldCheck className="h-5 w-5 text-stone-700" />
+                    <ShieldCheck className="h-5 w-5 text-secondary-foreground" />
                   ) : card.title === "Private Dateiwege" ? (
-                    <LockKeyhole className="h-5 w-5 text-stone-700" />
+                    <LockKeyhole className="h-5 w-5 text-secondary-foreground" />
                   ) : card.title === "Auditierbare Schritte" ? (
-                    <BadgeCheck className="h-5 w-5 text-stone-700" />
+                    <BadgeCheck className="h-5 w-5 text-secondary-foreground" />
                   ) : (
-                    <CheckCircle2 className="h-5 w-5 text-stone-700" />
+                    <CheckCircle2 className="h-5 w-5 text-secondary-foreground" />
                   )}
                 </div>
-                <h3 className="mt-6 text-xl font-semibold text-stone-950">{card.title}</h3>
-                <p className="mt-4 text-sm leading-7 text-stone-700">{card.description}</p>
+                <h3 className="mt-6 text-xl font-semibold text-foreground">{card.title}</h3>
+                <p className="mt-4 text-sm leading-7 text-secondary-foreground">{card.description}</p>
               </div>
             ))}
           </div>
         </section>
 
         <section className="py-20">
-          <div className="rounded-[2rem] border border-stone-200 bg-white px-8 py-10 sm:px-10">
+          <div className="rounded-lg border border-border bg-card px-8 py-10 sm:px-10">
             <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-stone-200 px-3 py-1 text-sm text-stone-700">
+              <div className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1 text-sm text-secondary-foreground">
                 <BadgeCheck className="h-4 w-4" />
                 Transparent statt ueberverkauft
               </div>
               <h2
-                className="mt-5 text-4xl font-semibold leading-tight tracking-[-0.04em] text-stone-950 sm:text-5xl"
-                style={{ fontFamily: '"Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif' }}
+                className="mt-5 carevo-h2"
               >
                 Gute Gesundheitssoftware verkauft nicht nur Tempo, sondern Verantwortung.
               </h2>
-              <p className="mt-5 text-lg leading-8 text-stone-700">
+              <p className="mt-5 text-lg leading-8 text-secondary-foreground">
                 CAREVO ist fuer sensible Dokumentationsablaeufe, klare Freigaben und nachvollziehbare Produktentscheidungen
                 gebaut. Genau das sollte man auf der Startseite spueren.
               </p>
             </div>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <Button asChild size="lg" className="h-12 rounded-full bg-stone-950 px-7 text-[#f7f3ec] hover:bg-stone-800">
+              <Button asChild size="lg" className="h-12 px-7">
                 <Link href="/dashboard">
                   Zur App
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
               <div className="flex flex-col gap-3 sm:items-end">
-                <Button asChild variant="ghost" className="rounded-full border border-stone-300 px-5 text-stone-900 hover:bg-stone-100">
+                <Button asChild variant="ghost" className="rounded-lg border border-border px-5 text-foreground hover:bg-secondary">
                   <Link href="/demo-buchen">Demo buchen</Link>
                 </Button>
-                <p className="max-w-xl text-sm leading-6 text-stone-500">
+                <p className="max-w-xl text-sm leading-6 text-muted-foreground">
                   Hinweis: Die Seite beschreibt den aktuellen MVP und seine Sicherheitsprinzipien. Sie ist bewusst keine
                   Aussage ueber formale MDR-, ISO- oder vollstaendige DSGVO-Zertifizierung.
                 </p>
@@ -421,34 +414,34 @@ export default function HomePage() {
           </div>
         </section>
 
-        <footer className="border-t border-stone-200 py-10">
+        <footer className="border-t border-border py-10">
           <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr]">
             <div className="max-w-md">
               <div className="flex items-center gap-3">
-                <LogoMark className="bg-stone-950 text-[#f7f3ec]" />
+                <LogoMark className="bg-primary text-primary-foreground" />
                 <div>
-                  <p className="text-sm font-semibold tracking-[0.24em] text-stone-950">CAREVO</p>
-                  <p className="text-sm text-stone-600">Dokumentation fuer Pflege und Versorgung</p>
+                  <p className="text-sm font-semibold tracking-normal text-foreground">CAREVO</p>
+                  <p className="text-sm text-secondary-foreground">Dokumentation fuer Pflege und Versorgung</p>
                 </div>
               </div>
-              <p className="mt-5 text-sm leading-6 text-stone-600">
+              <p className="mt-5 text-sm leading-6 text-secondary-foreground">
                 Eigenstaendig fuer CAREVO gestaltet, mit einer ruhigeren Enterprise-Informationsarchitektur fuer
                 deutsche B2B-Gesundheitssoftware.
               </p>
             </div>
 
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-stone-500">Produkt</p>
+              <p className="text-sm font-semibold uppercase tracking-normal text-muted-foreground">Produkt</p>
               <div className="mt-4 space-y-3">
                 {footerColumns.produkt.map((link) => (
                   link.href.startsWith("#") ? (
-                    <a key={link.label} href={link.href} className="flex items-center gap-2 text-sm text-stone-700 transition-colors hover:text-stone-950">
-                      <ChevronRight className="h-4 w-4 text-stone-500" />
+                    <a key={link.label} href={link.href} className="flex items-center gap-2 text-sm text-secondary-foreground transition-colors hover:text-foreground">
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
                       {link.label}
                     </a>
                   ) : (
-                    <Link key={link.label} href={link.href} className="flex items-center gap-2 text-sm text-stone-700 transition-colors hover:text-stone-950">
-                      <ChevronRight className="h-4 w-4 text-stone-500" />
+                    <Link key={link.label} href={link.href} className="flex items-center gap-2 text-sm text-secondary-foreground transition-colors hover:text-foreground">
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
                       {link.label}
                     </Link>
                   )
@@ -457,11 +450,11 @@ export default function HomePage() {
             </div>
 
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-stone-500">Rechtliches</p>
+              <p className="text-sm font-semibold uppercase tracking-normal text-muted-foreground">Rechtliches</p>
               <div className="mt-4 space-y-3">
                 {footerColumns.rechtliches.map((link) => (
-                  <Link key={link.label} href={link.href} className="flex items-center gap-2 text-sm text-stone-700 transition-colors hover:text-stone-950">
-                    <ChevronRight className="h-4 w-4 text-stone-500" />
+                  <Link key={link.label} href={link.href} className="flex items-center gap-2 text-sm text-secondary-foreground transition-colors hover:text-foreground">
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
                     {link.label}
                   </Link>
                 ))}
@@ -469,26 +462,26 @@ export default function HomePage() {
             </div>
 
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-stone-500">Social & Kontakt</p>
+              <p className="text-sm font-semibold uppercase tracking-normal text-muted-foreground">Social & Kontakt</p>
               <div className="mt-4 space-y-3">
                 {footerColumns.social.map((link) =>
                   link.href ? (
                     <a
                       key={link.label}
                       href={link.href}
-                      className="flex items-start gap-2 text-sm text-stone-700 transition-colors hover:text-stone-950"
+                      className="flex items-start gap-2 text-sm text-secondary-foreground transition-colors hover:text-foreground"
                       target="_blank"
                       rel="noreferrer"
                     >
-                      <Users className="mt-0.5 h-4 w-4 text-stone-500" />
+                      <Users className="mt-0.5 h-4 w-4 text-muted-foreground" />
                       <span>{link.label}</span>
                     </a>
                   ) : (
-                    <div key={link.label} className="flex items-start gap-2 text-sm text-stone-500">
-                      <MessageSquareText className="mt-0.5 h-4 w-4 text-stone-500" />
+                    <div key={link.label} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <MessageSquareText className="mt-0.5 h-4 w-4 text-muted-foreground" />
                       <div>
                         <p>{link.label}</p>
-                        <p className="text-xs text-stone-400">{link.note}</p>
+                        <p className="text-xs text-muted-foreground">{link.note}</p>
                       </div>
                     </div>
                   )
@@ -497,19 +490,19 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-10 flex flex-col gap-3 border-t border-stone-200 py-6 text-sm text-stone-500 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-10 flex flex-col gap-3 border-t border-border py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
             <p>© 2026 CAREVO. Alle Rechte vorbehalten.</p>
             <div className="flex flex-wrap items-center gap-4">
-              <Link href="/impressum" className="transition-colors hover:text-stone-900">
+              <Link href="/impressum" className="transition-colors hover:text-foreground">
                 Impressum
               </Link>
-              <Link href="/datenschutz" className="transition-colors hover:text-stone-900">
+              <Link href="/datenschutz" className="transition-colors hover:text-foreground">
                 Datenschutz
               </Link>
-              <Link href="/dashboard" className="transition-colors hover:text-stone-900">
+              <Link href="/dashboard" className="transition-colors hover:text-foreground">
                 Zur App
               </Link>
-              <Link href="/demo-buchen" className="transition-colors hover:text-stone-900">
+              <Link href="/demo-buchen" className="transition-colors hover:text-foreground">
                 Demo buchen
               </Link>
             </div>

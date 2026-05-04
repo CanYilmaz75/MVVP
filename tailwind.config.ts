@@ -50,11 +50,24 @@ const config: Config = {
         }
       },
       borderRadius: {
-        xl: "0.9rem",
-        "2xl": "1.25rem"
+        sm: "0.25rem",
+        DEFAULT: "0.5rem",
+        md: "0.5rem",
+        lg: "0.5rem",
+        xl: "0.5rem",
+        "2xl": "0.5rem"
       },
       boxShadow: {
-        soft: "0 18px 48px rgba(79, 57, 32, 0.08)"
+        subtle: "0 1px 2px rgba(10, 10, 15, 0.04)",
+        soft: "0 1px 2px rgba(10, 10, 15, 0.04)"
+      },
+      transitionDuration: {
+        fast: "100ms",
+        base: "200ms",
+        slow: "350ms"
+      },
+      transitionTimingFunction: {
+        carevo: "cubic-bezier(0.4, 0, 0.2, 1)"
       }
     }
   },

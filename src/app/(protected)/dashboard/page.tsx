@@ -43,7 +43,7 @@ export default async function DashboardPage() {
         description="Dokumentationsfortschritt ueberblicken und eine neue Beratung starten."
         actions={
           <>
-            <Button asChild variant="ghost" className="border border-border px-5 hover:bg-stone-100">
+            <Button asChild variant="ghost" className="border border-border px-5 hover:bg-secondary">
               <Link href="/demo-buchen">Demo buchen</Link>
             </Button>
             <Button asChild className="px-5">
@@ -56,10 +56,9 @@ export default async function DashboardPage() {
       <section className="grid gap-6 border-b border-border/70 pb-10 md:grid-cols-2 xl:grid-cols-4">
         {metrics.map((metric) => (
           <div key={metric.label} className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">{metric.label}</p>
+            <p className="text-xs font-semibold uppercase tracking-normal text-muted-foreground">{metric.label}</p>
             <p
-              className="text-5xl font-semibold tracking-[-0.06em]"
-              style={{ fontFamily: '"Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif' }}
+              className="text-[40px] font-semibold tracking-normal"
             >
               {metric.value}
             </p>
@@ -71,10 +70,9 @@ export default async function DashboardPage() {
         <div>
           <div className="flex items-end justify-between border-b border-border/70 pb-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Aktivitaet</p>
+              <p className="text-xs font-semibold uppercase tracking-normal text-muted-foreground">Aktivitaet</p>
               <h2
-                className="mt-2 text-3xl font-semibold tracking-[-0.04em]"
-                style={{ fontFamily: '"Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif' }}
+                className="mt-2 text-3xl font-semibold tracking-normal"
               >
                 Aktuelle Beratungen
               </h2>
@@ -90,7 +88,7 @@ export default async function DashboardPage() {
                 <Link
                   key={consultation.id}
                   href={`/consultations/${consultation.id}` as Route}
-                  className="flex flex-col gap-4 py-5 transition-colors hover:text-stone-700 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-4 py-5 transition-colors hover:text-secondary-foreground sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div>
                     <p className="font-medium">{consultation.patient_reference}</p>
@@ -112,10 +110,9 @@ export default async function DashboardPage() {
 
         <div className="space-y-6 border-l-0 xl:border-l xl:border-border/70 xl:pl-10">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Fokus heute</p>
+            <p className="text-xs font-semibold uppercase tracking-normal text-muted-foreground">Fokus heute</p>
             <h2
-              className="mt-2 text-3xl font-semibold tracking-[-0.04em]"
-              style={{ fontFamily: '"Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif' }}
+              className="mt-2 text-3xl font-semibold tracking-normal"
             >
               Weniger Masken. Mehr Klarheit.
             </h2>

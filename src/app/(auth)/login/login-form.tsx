@@ -43,12 +43,11 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
     <div className="w-full max-w-md">
       <div className="space-y-4">
         <div className="flex items-center gap-3">
-          <LogoMark className="bg-stone-950 text-[hsl(var(--primary-foreground))] shadow-none" />
+          <LogoMark className="bg-primary text-[hsl(var(--primary-foreground))] shadow-none" />
           <div>
             <p className="text-sm text-muted-foreground">Dokumentation fuer Pflege und Versorgung</p>
             <h1
-              className="mt-1 text-[2rem] tracking-[-0.04em]"
-              style={{ fontFamily: '"Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif' }}
+              className="mt-1 text-[2rem] tracking-normal"
             >
               Bei CAREVO anmelden
             </h1>

@@ -68,12 +68,11 @@ export function SignupForm() {
     <div className="w-full max-w-md">
       <div className="space-y-4">
         <div className="flex items-center gap-3">
-          <LogoMark className="bg-stone-950 text-[hsl(var(--primary-foreground))] shadow-none" />
+          <LogoMark className="bg-primary text-[hsl(var(--primary-foreground))] shadow-none" />
           <div>
             <p className="text-sm text-muted-foreground">B2B-SaaS fuer Pflege und Versorgung</p>
             <h1
               className="mt-1 text-[2rem] tracking-normal"
-              style={{ fontFamily: '"Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif' }}
             >
               {title}
             </h1>
@@ -132,7 +131,7 @@ export function SignupForm() {
             />
           </div>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
-          {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
+          {message ? <p className="text-sm text-accent">{message}</p> : null}
           <Button className="w-full" type="submit" disabled={isPending}>
             {isPending ? "Registrierung laeuft..." : "Registrieren"}
           </Button>

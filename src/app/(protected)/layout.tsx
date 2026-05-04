@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 
 import { AppHeader } from "@/components/layout/app-header";
-import { AppSidebar } from "@/components/layout/app-sidebar";
+import { AppMobileNav, AppSidebar } from "@/components/layout/app-sidebar";
 import { getAuthContext } from "@/server/auth/context";
 import { listPausedConsultations } from "@/server/services/consultation-service";
 
@@ -65,7 +65,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   const pageMeta = titleForPath(pathname);
 
   return (
-    <div className="min-h-screen bg-background lg:flex">
+    <div className="min-h-screen bg-background pb-20 lg:flex lg:pb-0">
       <AppSidebar
         currentPath={pathname}
         organisationName={auth.organisationName}
@@ -74,8 +74,9 @@ export default async function ProtectedLayout({ children }: { children: React.Re
       />
       <div className="flex min-h-screen flex-1 flex-col">
         <AppHeader title={pageMeta.title} subtitle={pageMeta.subtitle} />
-        <main className="mx-auto flex w-full max-w-7xl flex-1 px-6 py-8 sm:px-8 lg:px-10">{children}</main>
+        <main className="mx-auto flex w-full max-w-7xl flex-1 px-4 py-6 sm:px-8 lg:px-12 xl:px-20">{children}</main>
       </div>
+      <AppMobileNav currentPath={pathname} />
     </div>
   );
 }

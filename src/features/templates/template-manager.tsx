@@ -383,8 +383,8 @@ export function TemplateManager({ initialTemplates }: { initialTemplates: Templa
                     key={template.id}
                     type="button"
                     className={cn(
-                      "w-full rounded-xl border bg-card px-4 py-3 text-left transition-colors hover:bg-accent",
-                      template.id === selectedId && "border-primary bg-primary/5"
+                      "w-full rounded-lg border bg-card px-4 py-3 text-left transition-colors hover:bg-secondary",
+                      template.id === selectedId && "border-accent bg-accent/10"
                     )}
                     onClick={() => selectTemplate(template)}
                   >
@@ -401,7 +401,7 @@ export function TemplateManager({ initialTemplates }: { initialTemplates: Templa
                 );
               })
             ) : (
-              <div className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
                 Es wurden noch keine Vorlagen konfiguriert.
               </div>
             )}
@@ -455,7 +455,7 @@ export function TemplateManager({ initialTemplates }: { initialTemplates: Templa
                   </label>
                   <select
                     id="template-profession"
-                    className="h-10 w-full rounded-xl border border-input bg-card px-3 text-sm"
+                    className="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm"
                     value={draft.definition.primaryProfession}
                     onChange={(event) =>
                       updateDefinition((definition) => ({
@@ -480,7 +480,7 @@ export function TemplateManager({ initialTemplates }: { initialTemplates: Templa
                   </label>
                   <select
                     id="template-access"
-                    className="h-10 w-full rounded-xl border border-input bg-card px-3 text-sm"
+                    className="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm"
                     value={draft.definition.access.type}
                     onChange={(event) =>
                       updateDefinition((definition) => ({
@@ -527,7 +527,7 @@ export function TemplateManager({ initialTemplates }: { initialTemplates: Templa
                         type="button"
                         className={cn(
                           "rounded-full border px-3 py-1.5 text-sm transition-colors",
-                          isSelected ? "border-primary bg-primary text-primary-foreground" : "bg-card hover:bg-accent"
+                          isSelected ? "border-accent bg-accent text-accent-foreground" : "bg-card hover:bg-secondary"
                         )}
                         onClick={() =>
                           updateDefinition((definition) => ({
@@ -548,7 +548,7 @@ export function TemplateManager({ initialTemplates }: { initialTemplates: Templa
                 </div>
               ) : null}
 
-              <div className="rounded-xl border bg-secondary/40 p-4 text-sm text-muted-foreground">
+              <div className="rounded-lg border bg-secondary/40 p-4 text-sm text-muted-foreground">
                 {saveState === "saving"
                   ? "Autosave läuft..."
                   : saveState === "saved"
@@ -604,8 +604,8 @@ export function TemplateManager({ initialTemplates }: { initialTemplates: Templa
                       }));
                     }}
                     className={cn(
-                      "rounded-xl border bg-card p-4",
-                      entry.type === "heading" && "border-primary/35 bg-primary/5"
+                      "rounded-lg border bg-card p-4",
+                      entry.type === "heading" && "border-accent/35 bg-accent/10"
                     )}
                   >
                     <div className="grid gap-3 lg:grid-cols-[32px_minmax(180px,1fr)_220px_112px]">
@@ -618,7 +618,7 @@ export function TemplateManager({ initialTemplates }: { initialTemplates: Templa
                         onChange={(event) => updateEntry(entry.id, (current) => ({ ...current, name: event.target.value }))}
                       />
                       <select
-                        className="h-10 w-full rounded-xl border border-input bg-card px-3 text-sm"
+                        className="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm"
                         value={entry.type}
                         aria-label="Datentyp"
                         onChange={(event) =>
@@ -767,7 +767,7 @@ export function TemplateManager({ initialTemplates }: { initialTemplates: Templa
                   </div>
                 ))
               ) : (
-                <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
+                <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
                   Fügen Sie den ersten Eintrag hinzu, um die Vorlage aufzubauen.
                 </div>
               )}

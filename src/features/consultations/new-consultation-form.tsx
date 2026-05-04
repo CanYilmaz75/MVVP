@@ -90,7 +90,7 @@ export function NewConsultationForm() {
             </label>
             <select
               id="spokenLanguage"
-              className="h-10 w-full rounded-xl border border-input bg-card px-3 text-sm"
+              className="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm"
               {...form.register("spokenLanguage")}
             >
               <option value="de">Deutsch</option>

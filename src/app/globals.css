@@ -4,37 +4,112 @@
 
 @layer base {
   :root {
-    --background: 34 42% 95%;
-    --foreground: 30 20% 12%;
-    --card: 36 55% 98%;
-    --card-foreground: 30 20% 12%;
-    --popover: 36 55% 98%;
-    --popover-foreground: 30 20% 12%;
-    --primary: 28 24% 12%;
-    --primary-foreground: 36 54% 95%;
-    --secondary: 35 38% 91%;
-    --secondary-foreground: 30 20% 12%;
-    --muted: 35 30% 90%;
-    --muted-foreground: 27 12% 41%;
-    --accent: 37 44% 88%;
-    --accent-foreground: 30 20% 12%;
-    --destructive: 0 63% 47%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 30 25% 84%;
-    --input: 30 25% 84%;
-    --ring: 34 36% 55%;
-    --success: 148 27% 36%;
-    --success-foreground: 210 40% 98%;
-    --warning: 39 79% 52%;
-    --warning-foreground: 222 47% 11%;
+    --background: 240 11% 96%;
+    --foreground: 240 20% 5%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 20% 5%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 20% 5%;
+    --primary: 240 20% 5%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4% 96%;
+    --secondary-foreground: 240 4% 30%;
+    --muted: 240 4% 96%;
+    --muted-foreground: 240 7% 63%;
+    --accent: 186 58% 28%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 67% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 10% 92%;
+    --input: 240 10% 92%;
+    --ring: 186 58% 28%;
+    --success: 186 58% 28%;
+    --success-foreground: 0 0% 100%;
+    --warning: 240 4% 30%;
+    --warning-foreground: 0 0% 100%;
+    --carevo-black: #0a0a0f;
+    --carevo-white: #ffffff;
+    --carevo-teal: #1e6b72;
+    --carevo-surface: #f4f4f6;
+    --carevo-border: #e8e8ec;
+    --carevo-muted: #9b9ba8;
+    --carevo-secondary: #4a4a4f;
+    --carevo-error: #cc2929;
+    --duration-fast: 100ms;
+    --duration-base: 200ms;
+    --duration-slow: 350ms;
+    --ease-carevo: cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   * {
     @apply border-border;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: Helvetica, Arial, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+    letter-spacing: 0;
+  }
+
+  ::selection {
+    background: rgba(30, 107, 114, 0.16);
+    color: var(--carevo-black);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--carevo-teal);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .carevo-container {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-8 lg:px-12 xl:px-20;
+  }
+
+  .carevo-section {
+    @apply border-b border-border py-16 sm:py-20;
+  }
+
+  .carevo-eyebrow {
+    @apply text-xs font-semibold uppercase text-muted-foreground;
+    letter-spacing: 0;
+  }
+
+  .carevo-h1 {
+    @apply text-[42px] font-semibold leading-none text-foreground sm:text-[56px] lg:text-[72px];
+    letter-spacing: 0;
+  }
+
+  .carevo-h2 {
+    @apply text-[32px] font-semibold leading-tight text-foreground sm:text-5xl;
+    letter-spacing: 0;
+  }
+
+  .carevo-h3 {
+    @apply text-[32px] font-semibold leading-tight text-foreground;
+    letter-spacing: 0;
+  }
+
+  .carevo-lead {
+    @apply text-lg leading-8 text-secondary-foreground sm:text-[22px];
+  }
+
+  .carevo-card {
+    @apply rounded-lg border border-border bg-card text-card-foreground shadow-subtle;
+  }
+
+  .carevo-divider {
+    @apply border-t border-border;
+  }
+
+  .carevo-mono {
+    font-family: Courier, "Courier New", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    letter-spacing: 0;
   }
 }

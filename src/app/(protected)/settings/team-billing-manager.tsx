@@ -183,7 +183,7 @@ export function TeamBillingManager({ initialData }: { initialData: TeamData }) {
               <span className="font-medium">{formatMoney(data.billing.monthlyTotalCents)}</span>
             </div>
             {nextSeatBlocked ? (
-              <p className="rounded border border-amber-200 bg-amber-50 p-3 text-amber-900">
+              <p className="rounded border border-border bg-secondary p-3 text-foreground">
                 Das Self-Service-Limit ist erreicht. Weitere aktive Nutzer benoetigen eine Enterprise-Anfrage.
               </p>
             ) : null}

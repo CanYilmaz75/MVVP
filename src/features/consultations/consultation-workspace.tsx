@@ -779,12 +779,12 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
         </CardContent>
       </Card>
 
-      {error ? <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">{error}</div> : null}
+      {error ? <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">{error}</div> : null}
       {successMessage ? (
-        <div className="rounded-2xl border border-success/20 bg-success/5 px-4 py-3 text-sm text-success">{successMessage}</div>
+        <div className="rounded-lg border border-success/20 bg-success/5 px-4 py-3 text-sm text-success">{successMessage}</div>
       ) : null}
       {isLanguageDetectionEnabled ? (
-        <div className="rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
+        <div className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
           <p className="font-medium">Sprache erkennen ist aktiv.</p>
           <p className="mt-1 text-muted-foreground">
             Die gesprochene Sprache wird automatisch erkannt und die Notiz auf Deutsch erstellt. Prüfen Sie Übersetzung,
@@ -793,17 +793,17 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
         </div>
       ) : null}
       {!capabilities.aiTranscription ? (
-        <div className="rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
+        <div className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
           KI-Transkription ist aktuell deaktiviert. Audio kann weiter erfasst werden, die automatische Verarbeitung ist aber gesperrt.
         </div>
       ) : null}
       {!capabilities.aiNoteGeneration ? (
-        <div className="rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
+        <div className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
           KI-Notizerstellung ist aktuell deaktiviert. Entwürfe lassen sich erst nach erneuter Freigabe dieser Funktion erzeugen.
         </div>
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_minmax(0,1fr)]">
         <Card>
           <CardHeader>
             <CardTitle>Steuerung</CardTitle>
@@ -812,7 +812,7 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
             <div>
               <p className="font-medium">Aktuelle Audiodatei</p>
               {workspace.latestAudioAsset ? (
-                <div className="mt-2 rounded-xl bg-secondary/60 p-3">
+                <div className="mt-2 rounded-lg bg-secondary/60 p-3">
                   <p>{audioSourceLabels[workspace.latestAudioAsset.source] ?? workspace.latestAudioAsset.source}</p>
                   <p className="text-xs text-muted-foreground">{workspace.latestAudioAsset.mime_type}</p>
                 </div>
@@ -828,14 +828,14 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
               </div>
 
               {showAdditionalTextForm ? (
-                <div className="space-y-3 rounded-xl border bg-background p-3">
+                <div className="space-y-3 rounded-lg border bg-background p-3">
                   <Input
                     placeholder="Titel, z. B. Frühere Arztnotiz"
                     value={additionalTextTitle}
                     onChange={(event) => setAdditionalTextTitle(event.target.value)}
                   />
                   <select
-                    className="h-10 w-full rounded-xl border border-input bg-card px-3 text-sm"
+                    className="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm"
                     value={additionalTextSourceType}
                     onChange={(event) =>
                       setAdditionalTextSourceType(
@@ -873,7 +873,7 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
               {workspace.additionalTexts.length ? (
                 <div className="space-y-2">
                   {workspace.additionalTexts.map((additionalText) => (
-                    <div key={additionalText.id} className="rounded-xl bg-secondary/60 p-3">
+                    <div key={additionalText.id} className="rounded-lg bg-secondary/60 p-3">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
                           <p className="truncate font-medium">{additionalText.title}</p>
@@ -911,7 +911,7 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
               {workspace.warnings.length ? (
                 <ul className="mt-2 space-y-2">
                   {workspace.warnings.map((warning) => (
-                    <li key={warning.code} className="rounded-xl bg-warning/10 p-3">
+                    <li key={warning.code} className="rounded-lg bg-warning/10 p-3">
                       <p className="font-medium">{warning.message}</p>
                       <p className="text-xs text-muted-foreground">
                         {warning.section} · {warning.severity}
@@ -959,7 +959,7 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
           </CardContent>
         </Card>
 
-        <Card className="min-h-[640px]">
+        <Card className="min-h-[420px] lg:min-h-[640px]">
           <CardHeader>
             <CardTitle>Transkript</CardTitle>
           </CardHeader>
@@ -977,12 +977,12 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
                     </span>
                   ) : null}
                 </div>
-                <div className="rounded-2xl bg-secondary/50 p-4">
+                <div className="rounded-lg bg-secondary/50 p-4">
                   <p className="whitespace-pre-wrap text-sm leading-6">{workspace.latestTranscript.raw_text}</p>
                 </div>
               </>
             ) : (
-              <div className="flex h-[520px] items-center justify-center rounded-2xl border border-dashed px-8 text-center">
+              <div className="flex min-h-[320px] lg:h-[520px] items-center justify-center rounded-lg border border-dashed px-8 text-center">
                 <p className="text-sm text-muted-foreground">
                   Beratungs-Audio aufnehmen oder hochladen und anschliessend transkribieren. Alternativ kann eine Notiz
                   ausschließlich aus zusätzlichem Text erstellt werden.
@@ -992,7 +992,7 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
           </CardContent>
         </Card>
 
-        <Card className="min-h-[640px]">
+        <Card className="min-h-[420px] lg:min-h-[640px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle>Notizbereich</CardTitle>
             <div className="flex items-center gap-2">
@@ -1003,7 +1003,7 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
           <CardContent>
             {workspace.note && noteDraft && noteSectionFields ? (
               <div className="space-y-5">
-                <div className="rounded-2xl border bg-background p-4">
+                <div className="rounded-lg border bg-background p-4">
                   <pre className="whitespace-pre-wrap font-sans text-sm leading-6">{workspace.note.rendered_text}</pre>
                 </div>
 
@@ -1333,7 +1333,7 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
                 </Button>
               </div>
             ) : (
-              <div className="flex h-[520px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed px-8 text-center">
+              <div className="flex min-h-[320px] lg:h-[520px] flex-col items-center justify-center gap-3 rounded-lg border border-dashed px-8 text-center">
                 <p className="text-sm text-muted-foreground">
                   Erstellen Sie einen Notizentwurf, sobald das Transkript bereit ist. Der strukturierte SOAP-Editor erscheint dann hier.
                 </p>

@@ -327,7 +327,7 @@ function FieldReviewPanel({ review, onReviewed }: { review: SisFieldReview; onRe
   const hasEvidence = review.evidence.length > 0;
 
   return (
-    <div className="rounded-xl border bg-background p-3">
+    <div className="rounded-lg border bg-background p-3">
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant={confidenceVariant(review)}>Confidence: {confidenceLabel(review.confidence)}</Badge>
         {review.needsReview ? <Badge variant="warning">Review nötig</Badge> : <Badge variant="success">Geprüft</Badge>}
@@ -1165,25 +1165,25 @@ export function SisWorkspace({
         </CardContent>
       </Card>
 
-      {error ? <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">{error}</div> : null}
+      {error ? <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">{error}</div> : null}
       {successMessage ? (
-        <div className="rounded-2xl border border-success/20 bg-success/5 px-4 py-3 text-sm text-success">{successMessage}</div>
+        <div className="rounded-lg border border-success/20 bg-success/5 px-4 py-3 text-sm text-success">{successMessage}</div>
       ) : null}
       {!capabilities.aiTranscription ? (
-        <div className="rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
+        <div className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
           KI-Transkription ist derzeit deaktiviert. Neue SIS-Aufnahmen können aktuell nicht automatisch verarbeitet werden.
         </div>
       ) : null}
       {!capabilities.sisExtraction ? (
-        <div className="rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
+        <div className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm">
           KI-gestützte SIS-Extraktion ist derzeit deaktiviert. Bestehende Sitzungen lassen sich weiter manuell bearbeiten und speichern.
         </div>
       ) : null}
 
-      <Card className="border-primary/20 bg-primary/[0.03]">
+      <Card className="border-accent/20 bg-accent/[0.03]">
         <CardContent className="flex flex-col gap-5 p-6 xl:flex-row xl:items-center xl:justify-between">
           <div className="space-y-2">
-            <p className="text-sm font-medium text-primary">Sprachdokumentation</p>
+            <p className="text-sm font-medium text-accent">Sprachdokumentation</p>
             <h3 className="text-xl font-semibold">SIS per Aufnahme starten</h3>
             <p className="max-w-2xl text-sm text-muted-foreground">
               Der wichtigste Einstieg ist die Spracheingabe: Gespräch aufnehmen, automatisch transkribieren und daraus
@@ -1214,7 +1214,7 @@ export function SisWorkspace({
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 xl:grid-cols-[150px_minmax(0,1fr)]">
+      <div className="grid gap-6 lg:grid-cols-[150px_minmax(0,1fr)]">
         <aside className="xl:sticky xl:top-6 xl:self-start">
           <div className="space-y-5">
             <div className="relative">
@@ -1234,11 +1234,11 @@ export function SisWorkspace({
                       }`}
                     >
                       <div
-                        className={`relative z-10 mt-1.5 h-3.5 w-3.5 shrink-0 rounded-full border ${
+                        className={`relative z-10 mt-1.5 h-3.5 w-3.5 shrink-0 rounded-lg border ${
                           item.done
                             ? "border-success bg-success"
                             : isCurrent
-                              ? "border-primary bg-primary"
+                              ? "border-accent bg-accent"
                               : "border-border bg-background"
                         }`}
                       />
@@ -1319,7 +1319,7 @@ export function SisWorkspace({
                     Zum Aufnahme-Schritt
                   </Button>
                 </div>
-                <div className="rounded-xl border bg-secondary/40 p-4 text-sm text-muted-foreground">
+                <div className="rounded-lg border bg-secondary/40 p-4 text-sm text-muted-foreground">
                   Starte mit einem kurzen Bild der Person. Danach führst du das Gespräch, lässt die SIS strukturieren und
                   arbeitest die Themenfelder nacheinander durch.
                 </div>
@@ -1356,11 +1356,11 @@ export function SisWorkspace({
                   </Button>
                 </div>
 
-                <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+                <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
                   <div className="space-y-4">
-                    <div className="rounded-xl border bg-background p-4">
+                    <div className="rounded-lg border bg-background p-4">
                       <div className="flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-primary" />
+                        <Sparkles className="h-4 w-4 text-accent" />
                         <p className="text-sm font-medium">Jetzt passende Fragen</p>
                       </div>
                       <div className="mt-3 space-y-2">
@@ -1368,7 +1368,7 @@ export function SisWorkspace({
                           <button
                             key={question}
                             type="button"
-                            className="w-full rounded-xl border bg-card p-3 text-left text-sm transition-colors hover:bg-secondary/70"
+                            className="w-full rounded-lg border bg-card p-3 text-left text-sm transition-colors hover:bg-secondary/70"
                             onClick={() => setLiveNotes((current) => `${current}${current ? "\n" : ""}Gefragt: ${question}`)}
                           >
                             {question}
@@ -1392,7 +1392,7 @@ export function SisWorkspace({
                   </div>
 
                   <div className="space-y-4">
-                    <div className="rounded-xl border bg-background p-4">
+                    <div className="rounded-lg border bg-background p-4">
                       <p className="text-sm font-medium">Transkript</p>
                       {busyAction === "transcribe" || busyAction === "extract" ? (
                         <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
@@ -1400,7 +1400,7 @@ export function SisWorkspace({
                           {busyAction === "transcribe" ? "Transkription läuft..." : "SIS wird strukturiert..."}
                         </div>
                       ) : transcriptText ? (
-                        <div className="mt-3 max-h-[420px] overflow-auto rounded-xl bg-secondary/60 p-4">
+                        <div className="mt-3 max-h-[420px] overflow-auto rounded-lg bg-secondary/60 p-4">
                           <p className="whitespace-pre-wrap text-sm leading-6">{transcriptText}</p>
                         </div>
                       ) : (
@@ -1433,7 +1433,7 @@ export function SisWorkspace({
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="rounded-xl border bg-secondary/40 p-4">
+                <div className="rounded-lg border bg-secondary/40 p-4">
                   <p className="text-sm font-medium">Leitfragen</p>
                   <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                     {currentTopicDefinition.guideQuestions.map((question) => (
@@ -1517,7 +1517,7 @@ export function SisWorkspace({
                 </div>
               </CardHeader>
               <CardContent className="space-y-5">
-                <div className="rounded-xl border bg-secondary/40 p-4 text-sm text-muted-foreground">
+                <div className="rounded-lg border bg-secondary/40 p-4 text-sm text-muted-foreground">
                   <p className="font-medium text-foreground">Leitfrage</p>
                   <p className="mt-2">{currentRiskDefinition.guideQuestion}</p>
                 </div>
@@ -1541,7 +1541,7 @@ export function SisWorkspace({
                   onReviewed={() => markReviewed("risk", currentRiskDefinition.key, "relevant")}
                 />
 
-                <div className="grid gap-2 rounded-xl border bg-background p-4">
+                <div className="grid gap-2 rounded-lg border bg-background p-4">
                   {(["monitor", "action"] as SisRiskLevel[]).map((level) => (
                     <label key={level} className="flex items-center gap-2 text-sm text-muted-foreground">
                       <input
@@ -1587,7 +1587,7 @@ export function SisWorkspace({
                 <CardTitle>Abschluss</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+                <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium" htmlFor="evaluation-focus">
@@ -1602,7 +1602,7 @@ export function SisWorkspace({
                       <FieldReviewPanel review={review.evaluationFocus} onReviewed={() => markReviewed("evaluationFocus")} />
                     </div>
 
-                    <div className="rounded-xl bg-secondary/60 p-4">
+                    <div className="rounded-lg bg-secondary/60 p-4">
                       <pre className="whitespace-pre-wrap font-sans text-sm leading-6">{sisText}</pre>
                     </div>
 
@@ -1619,12 +1619,12 @@ export function SisWorkspace({
                   </div>
 
                   <div className="space-y-4">
-                    <div className="rounded-xl border bg-background p-4">
+                    <div className="rounded-lg border bg-background p-4">
                       <p className="text-sm font-medium">Maßnahmenplanung</p>
                       {measurePlan.length ? (
                         <div className="mt-3 space-y-3">
                           {measurePlan.map((measure, index) => (
-                            <div key={`${measure.source}-${index}`} className="rounded-xl border bg-card p-3">
+                            <div key={`${measure.source}-${index}`} className="rounded-lg border bg-card p-3">
                               <p className="text-xs font-medium text-muted-foreground">{measure.source}</p>
                               <p className="mt-1 text-sm">{measure.text}</p>
                             </div>
@@ -1635,7 +1635,7 @@ export function SisWorkspace({
                       )}
                     </div>
 
-                    <div className="rounded-xl border bg-background p-4">
+                    <div className="rounded-lg border bg-background p-4">
                       <p className="text-sm font-medium">Offene Fragen</p>
                       {openQuestions.length ? (
                         <ul className="mt-3 space-y-2 text-sm text-muted-foreground">

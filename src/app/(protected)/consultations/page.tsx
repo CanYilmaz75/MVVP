@@ -31,7 +31,29 @@ export default async function ConsultationsPage() {
         </CardHeader>
         <CardContent>
           {consultations.length ? (
-            <div className="overflow-hidden rounded-2xl border">
+            <>
+            <div className="space-y-3 md:hidden">
+              {consultations.map((consultation: Awaited<ReturnType<typeof listConsultations>>[number]) => (
+                <Link
+                  key={consultation.id}
+                  href={`/consultations/${consultation.id}` as Route}
+                  className="block rounded-lg border border-border bg-card p-4 transition-colors hover:bg-secondary"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{consultation.patient_reference}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{consultation.specialty}</p>
+                    </div>
+                    <StatusBadge status={consultation.status} />
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-muted-foreground">
+                    <span>{languageLabel(consultation.spoken_language)}</span>
+                    <span className="text-right">{new Date(consultation.updated_at).toLocaleString()}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <div className="hidden overflow-hidden rounded-lg border md:block">
               <table className="w-full text-left text-sm">
                 <thead className="bg-secondary/70">
                   <tr>
@@ -63,8 +85,9 @@ export default async function ConsultationsPage() {
                 </tbody>
               </table>
             </div>
+            </>
           ) : (
-            <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
               Beratungsdatensaetze erscheinen hier, sobald Ihr Team Besuche dokumentiert.
             </div>
           )}
