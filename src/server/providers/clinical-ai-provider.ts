@@ -61,7 +61,7 @@ export const openAiClinicalProvider: ClinicalAiProvider = {
     const response = await openai.audio.transcriptions.create({
       file: new File([input.bytes], input.fileName, { type: input.mimeType }),
       model: "gpt-4o-mini-transcribe",
-      response_format: input.verbose ? "verbose_json" : "json",
+      response_format: "json",
       ...(input.language ? { language: input.language } : {})
     });
 
