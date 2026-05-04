@@ -72,7 +72,7 @@ export function ProtectedShell({
   const pageMeta = titleForPath(pathname);
 
   return (
-    <div className="min-h-screen bg-background pb-36 lg:flex lg:pb-0">
+    <div className="min-h-screen bg-background pb-36 md:flex md:pb-0">
       <AppSidebar
         currentPath={pathname}
         organisationName={organisationName}
@@ -81,7 +81,7 @@ export function ProtectedShell({
       />
       <div className="flex min-h-screen flex-1 flex-col">
         <AppHeader title={pageMeta.title} subtitle={pageMeta.subtitle} />
-        <main className="mx-auto flex w-full max-w-7xl flex-1 px-4 py-6 sm:px-8 lg:px-12 xl:px-20">{children}</main>
+        <main className="mx-auto flex w-full max-w-7xl flex-1 px-4 py-6 sm:px-8 lg:px-10 xl:px-20">{children}</main>
       </div>
       <AppMobileNav currentPath={pathname} />
     </div>

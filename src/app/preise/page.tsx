@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { Route } from "next";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, ChevronRight, HelpCircle, Minus } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronRight, HelpCircle, Menu, Minus } from "lucide-react";
 
 import { LogoMark } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
@@ -123,14 +123,14 @@ export default function PricingPage() {
               <p className="text-xs text-muted-foreground">Pflege & Versorgung</p>
             </div>
           </Link>
-          <nav className="order-3 grid w-full grid-cols-3 gap-2 border-t border-border pt-4 md:order-none md:flex md:w-auto md:border-t-0 md:pt-0">
-            <Link href="/" className="flex min-h-11 items-center justify-center rounded-lg border border-border px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground md:border-transparent">
+          <nav className="hidden items-center gap-2 md:flex">
+            <Link href="/" className="flex min-h-11 items-center justify-center rounded-lg px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground">
               Produkt
             </Link>
-            <Link href="/preise" className="flex min-h-11 items-center justify-center rounded-lg border border-border bg-secondary px-3 py-3 text-sm font-medium text-foreground md:border-transparent">
+            <Link href="/preise" className="flex min-h-11 items-center justify-center rounded-lg bg-secondary px-3 py-3 text-sm font-medium text-foreground">
               Preise
             </Link>
-            <Link href="/demo-buchen" className="flex min-h-11 items-center justify-center rounded-lg border border-border px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground md:border-transparent">
+            <Link href="/demo-buchen" className="flex min-h-11 items-center justify-center rounded-lg px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground">
               Kontakt
             </Link>
           </nav>
@@ -142,6 +142,24 @@ export default function PricingPage() {
               <Link href="/signup">Starten</Link>
             </Button>
           </div>
+
+          <details className="group order-3 w-full border-t border-border pt-4 md:hidden">
+            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between rounded-lg border border-border bg-card px-4 text-sm font-semibold text-foreground transition-colors hover:bg-secondary [&::-webkit-details-marker]:hidden">
+              <span>Menü</span>
+              <Menu className="h-5 w-5 stroke-[1.5] text-muted-foreground transition-transform group-open:rotate-90" />
+            </summary>
+            <div className="mt-2 rounded-lg border border-border bg-card p-2">
+              <Link href="/" className="flex min-h-12 items-center rounded-lg px-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                Produkt
+              </Link>
+              <Link href="/preise" className="flex min-h-12 items-center rounded-lg bg-secondary px-3 text-sm font-medium text-foreground">
+                Preise
+              </Link>
+              <Link href="/demo-buchen" className="flex min-h-12 items-center rounded-lg px-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                Kontakt
+              </Link>
+            </div>
+          </details>
         </header>
 
         <section className="py-20 text-center sm:py-24">

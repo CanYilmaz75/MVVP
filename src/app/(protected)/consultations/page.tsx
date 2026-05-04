@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { Route } from "next";
 
-import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -15,19 +14,12 @@ export default async function ConsultationsPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Beratungen"
-        description="Neue Beratung anlegen oder einen bestehenden Arbeitsbereich oeffnen."
-        actions={
+      <Card>
+        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <CardTitle>Beratungsliste</CardTitle>
           <Button asChild>
             <Link href="/consultations/new">Beratung starten</Link>
           </Button>
-        }
-      />
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Beratungsliste</CardTitle>
         </CardHeader>
         <CardContent>
           {consultations.length ? (

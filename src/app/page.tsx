@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   ChevronRight,
   LockKeyhole,
+  Menu,
   MessageSquareText,
   Quote,
   ShieldCheck,
@@ -157,14 +158,14 @@ export default function HomePage() {
             </div>
           </Link>
 
-          <nav className="order-3 grid w-full grid-cols-2 gap-2 border-t border-border pt-4 sm:grid-cols-4 md:order-none md:flex md:w-auto md:border-t-0 md:pt-0">
+          <nav className="hidden items-center gap-2 md:flex">
             {navigation.map((item) => (
               item.href.startsWith("/") ? (
-                <Link key={item.label} href={item.href} className="flex min-h-11 items-center justify-center rounded-lg border border-border px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground md:border-transparent">
+                <Link key={item.label} href={item.href} className="flex min-h-11 items-center justify-center rounded-lg px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground">
                   {item.label}
                 </Link>
               ) : (
-                <a key={item.label} href={item.href} className="flex min-h-11 items-center justify-center rounded-lg border border-border px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground md:border-transparent">
+                <a key={item.label} href={item.href} className="flex min-h-11 items-center justify-center rounded-lg px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground">
                   {item.label}
                 </a>
               )
@@ -179,6 +180,34 @@ export default function HomePage() {
               <Link href="/dashboard">Zur App</Link>
             </Button>
           </div>
+
+          <details className="group order-3 w-full border-t border-border pt-4 md:hidden">
+            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between rounded-lg border border-border bg-card px-4 text-sm font-semibold text-foreground transition-colors hover:bg-secondary [&::-webkit-details-marker]:hidden">
+              <span>Menü</span>
+              <Menu className="h-5 w-5 stroke-[1.5] text-muted-foreground transition-transform group-open:rotate-90" />
+            </summary>
+            <div className="mt-2 rounded-lg border border-border bg-card p-2">
+              {navigation.map((item) =>
+                item.href.startsWith("/") ? (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="flex min-h-12 items-center rounded-lg px-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    className="flex min-h-12 items-center rounded-lg px-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  >
+                    {item.label}
+                  </a>
+                )
+              )}
+            </div>
+          </details>
         </header>
 
         <section className="border-b border-border py-20 sm:py-24">

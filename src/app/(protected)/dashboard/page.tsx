@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { Route } from "next";
 import { ArrowUpRight } from "lucide-react";
 
-import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { getAuthContext } from "@/server/auth/context";
 import { listConsultations } from "@/server/services/consultation-service";
@@ -38,20 +37,14 @@ export default async function DashboardPage() {
 
   return (
     <div className="w-full space-y-10">
-      <PageHeader
-        title="Dashboard"
-        description="Dokumentationsfortschritt ueberblicken und eine neue Beratung starten."
-        actions={
-          <>
-            <Button asChild variant="ghost" className="border border-border px-5 hover:bg-secondary">
-              <Link href="/demo-buchen">Demo buchen</Link>
-            </Button>
-            <Button asChild className="px-5">
-              <Link href="/consultations/new">Beratung starten</Link>
-            </Button>
-          </>
-        }
-      />
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+        <Button asChild variant="ghost" className="border border-border px-5 hover:bg-secondary">
+          <Link href="/demo-buchen">Demo buchen</Link>
+        </Button>
+        <Button asChild className="px-5">
+          <Link href="/consultations/new">Beratung starten</Link>
+        </Button>
+      </div>
 
       <section className="grid gap-6 border-b border-border/70 pb-10 md:grid-cols-2 xl:grid-cols-4">
         {metrics.map((metric) => (

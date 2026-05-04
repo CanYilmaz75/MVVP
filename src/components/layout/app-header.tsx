@@ -10,7 +10,7 @@ export function AppHeader({
   subtitle?: string;
 }) {
   return (
-    <header className="flex flex-col gap-5 border-b border-border bg-card px-4 py-5 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-12 xl:px-20">
+    <header className="flex flex-col gap-5 border-b border-border bg-card px-4 py-5 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-10 xl:px-20">
       <div>
         <p className="carevo-eyebrow">Arbeitsbereich</p>
         <h1 className="mt-2 text-2xl font-semibold leading-tight sm:text-[32px]">{title}</h1>

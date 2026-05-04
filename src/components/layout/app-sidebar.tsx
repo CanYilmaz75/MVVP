@@ -30,7 +30,7 @@ export function AppSidebar({
   userName: string;
 }) {
   return (
-    <aside className="hidden w-72 flex-col border-r border-border bg-card px-6 py-8 lg:flex">
+    <aside className="hidden w-64 flex-col border-r border-border bg-card px-5 py-8 md:flex xl:w-72 xl:px-6">
       <div className="flex items-center gap-3">
         <LogoMark />
         <div>
@@ -105,10 +105,10 @@ export function AppMobileNav({ currentPath }: { currentPath: string }) {
   return (
     <>
       {isOpen ? (
-        <div className="fixed inset-0 z-40 bg-primary/20 lg:hidden" onClick={() => setIsOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-primary/20 md:hidden" onClick={() => setIsOpen(false)} />
       ) : null}
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card/95 px-4 pb-[max(env(safe-area-inset-bottom),12px)] pt-3 backdrop-blur lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card/95 px-4 pb-[max(env(safe-area-inset-bottom),12px)] pt-3 backdrop-blur md:hidden">
         {isOpen ? (
           <div className="mx-auto mb-3 max-w-md rounded-lg border border-border bg-card shadow-subtle">
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
