@@ -79,6 +79,7 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [clipboardExportText, setClipboardExportText] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -185,6 +186,32 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
     }
 
     return waitForJob<T>(payload.data.job);
+  }
+
+  async function copyTextToClipboard(text: string) {
+    if (navigator.clipboard?.writeText && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        // Fall back to a temporary selection for browsers that lose clipboard permission after async work.
+      }
+    }
+
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.setAttribute("readonly", "true");
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    textArea.style.top = "0";
+    document.body.appendChild(textArea);
+    textArea.select();
+
+    try {
+      return document.execCommand("copy");
+    } finally {
+      document.body.removeChild(textArea);
+    }
   }
 
   async function uploadAudio(file: File, source: "browser_recording" | "upload") {
@@ -603,8 +630,13 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
         "Export in die Zwischenablage fehlgeschlagen."
       );
 
-      await navigator.clipboard.writeText(result.content);
-      setSuccessMessage("Freigegebene Notiz in die Zwischenablage kopiert.");
+      setClipboardExportText(result.content);
+      const copied = await copyTextToClipboard(result.content);
+      setSuccessMessage(
+        copied
+          ? "Freigegebene Notiz in die Zwischenablage kopiert."
+          : "Freigegebene Notiz erstellt. Text kann unten manuell kopiert werden."
+      );
     });
   }
 
@@ -915,6 +947,14 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
               <Button variant="outline" className="w-full" onClick={exportClipboard} disabled={!canExport || busyAction !== null}>
                 Freigegebenen Text kopieren
               </Button>
+              {clipboardExportText ? (
+                <Textarea
+                  readOnly
+                  value={clipboardExportText}
+                  className="min-h-[220px] text-xs leading-5"
+                  onFocus={(event) => event.currentTarget.select()}
+                />
+              ) : null}
             </div>
           </CardContent>
         </Card>
