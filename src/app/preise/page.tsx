@@ -120,17 +120,17 @@ export default function PricingPage() {
             <LogoMark className="bg-primary text-primary-foreground" />
             <div>
               <p className="text-sm font-semibold tracking-normal text-foreground">CAREVO</p>
-              <p className="text-xs text-muted-foreground">Dokumentation fuer Pflege und Versorgung</p>
+              <p className="text-xs text-muted-foreground">Pflege & Versorgung</p>
             </div>
           </Link>
-          <nav className="order-3 flex w-full gap-2 overflow-x-auto border-t border-border pt-4 md:order-none md:w-auto md:border-t-0 md:pt-0">
-            <Link href="/" className="min-h-11 shrink-0 rounded-lg px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground">
+          <nav className="order-3 grid w-full grid-cols-3 gap-2 border-t border-border pt-4 md:order-none md:flex md:w-auto md:border-t-0 md:pt-0">
+            <Link href="/" className="flex min-h-11 items-center justify-center rounded-lg border border-border px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground md:border-transparent">
               Produkt
             </Link>
-            <Link href="/preise" className="min-h-11 shrink-0 rounded-lg bg-secondary px-3 py-3 text-sm font-medium text-foreground">
+            <Link href="/preise" className="flex min-h-11 items-center justify-center rounded-lg border border-border bg-secondary px-3 py-3 text-sm font-medium text-foreground md:border-transparent">
               Preise
             </Link>
-            <Link href="/demo-buchen" className="min-h-11 shrink-0 rounded-lg px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground">
+            <Link href="/demo-buchen" className="flex min-h-11 items-center justify-center rounded-lg border border-border px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground md:border-transparent">
               Kontakt
             </Link>
           </nav>

@@ -153,18 +153,18 @@ export default function HomePage() {
             <LogoMark className="bg-primary text-primary-foreground" />
             <div>
               <p className="text-sm font-semibold tracking-normal text-foreground">CAREVO</p>
-              <p className="text-xs text-muted-foreground">Dokumentation fuer Pflege und Versorgung</p>
+              <p className="text-xs text-muted-foreground">Pflege & Versorgung</p>
             </div>
           </Link>
 
-          <nav className="order-3 flex w-full gap-2 overflow-x-auto border-t border-border pt-4 md:order-none md:w-auto md:border-t-0 md:pt-0">
+          <nav className="order-3 grid w-full grid-cols-2 gap-2 border-t border-border pt-4 sm:grid-cols-4 md:order-none md:flex md:w-auto md:border-t-0 md:pt-0">
             {navigation.map((item) => (
               item.href.startsWith("/") ? (
-                <Link key={item.label} href={item.href} className="min-h-11 shrink-0 rounded-lg px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                <Link key={item.label} href={item.href} className="flex min-h-11 items-center justify-center rounded-lg border border-border px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground md:border-transparent">
                   {item.label}
                 </Link>
               ) : (
-                <a key={item.label} href={item.href} className="min-h-11 shrink-0 rounded-lg px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                <a key={item.label} href={item.href} className="flex min-h-11 items-center justify-center rounded-lg border border-border px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground md:border-transparent">
                   {item.label}
                 </a>
               )
@@ -183,12 +183,12 @@ export default function HomePage() {
 
         <section className="border-b border-border py-20 sm:py-24">
           <div className="mx-auto max-w-4xl text-center">
-            <Eyebrow>Dokumentation fuer Pflege und Versorgung</Eyebrow>
+            <Eyebrow>Pflege & Versorgung</Eyebrow>
             <h1
               className="mt-6 carevo-h1"
             >
-              Weniger Dokumentationslast.
-              <span className="block">Mehr Zeit fuer die naechste Versorgung.</span>
+              Weniger Aufwand.
+              <span className="block">Mehr Zeit fuer Versorgung.</span>
             </h1>
             <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-secondary-foreground sm:text-xl">
               CAREVO hilft Einrichtungen, Diensten und Traegern, schneller von Audio und Kontext zu einer pruefbaren,
@@ -208,7 +208,7 @@ export default function HomePage() {
                 variant="ghost"
                 className="h-12 rounded-lg border border-border px-7 text-foreground hover:bg-secondary"
               >
-                <Link href="/demo-buchen">Demo buchen</Link>
+                <Link href="/demo-buchen">Demo</Link>
               </Button>
             </div>
           </div>
@@ -247,7 +247,7 @@ export default function HomePage() {
             <h2
               className="mt-5 carevo-h2"
             >
-              CAREVO ist fuer Teams gebaut, die unter echter Dokumentationslast arbeiten.
+              CAREVO ist fuer Teams gebaut, die unter hohem Dokumentationsdruck arbeiten.
             </h2>
             <p className="mt-5 text-lg leading-8 text-secondary-foreground">
               Nicht fuer Demo-Effekte, sondern fuer Pflegeeinrichtungen, ambulante Dienste, Traeger und
@@ -421,7 +421,7 @@ export default function HomePage() {
                 <LogoMark className="bg-primary text-primary-foreground" />
                 <div>
                   <p className="text-sm font-semibold tracking-normal text-foreground">CAREVO</p>
-                  <p className="text-sm text-secondary-foreground">Dokumentation fuer Pflege und Versorgung</p>
+                  <p className="text-sm text-secondary-foreground">Pflege & Versorgung</p>
                 </div>
               </div>
               <p className="mt-5 text-sm leading-6 text-secondary-foreground">

@@ -45,7 +45,7 @@ export function LoginForm({ nextPath }: { nextPath?: string }) {
         <div className="flex items-center gap-3">
           <LogoMark className="bg-primary text-[hsl(var(--primary-foreground))] shadow-none" />
           <div>
-            <p className="text-sm text-muted-foreground">Dokumentation fuer Pflege und Versorgung</p>
+            <p className="text-sm text-muted-foreground">Pflege & Versorgung</p>
             <h1
               className="mt-1 text-[2rem] tracking-normal"
             >

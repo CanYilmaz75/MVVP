@@ -31,7 +31,7 @@ export function AppSidebar({
       <div className="flex items-center gap-3">
         <LogoMark />
         <div>
-          <p className="text-sm font-medium text-muted-foreground">Dokumentation fuer Pflege und Versorgung</p>
+          <p className="text-sm font-medium text-muted-foreground">Pflege & Versorgung</p>
           <p className="text-lg font-semibold">CAREVO</p>
         </div>
       </div>
@@ -96,8 +96,8 @@ export function AppSidebar({
 
 export function AppMobileNav({ currentPath }: { currentPath: string }) {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-2 pb-[max(env(safe-area-inset-bottom),8px)] pt-2 backdrop-blur lg:hidden">
-      <div className="mx-auto grid max-w-md grid-cols-6 gap-1">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-3 pb-[max(env(safe-area-inset-bottom),12px)] pt-3 backdrop-blur lg:hidden">
+      <div className="mx-auto grid max-w-md grid-cols-3 gap-2">
         {items.map(({ href, label, icon: Icon }) => {
           const isActive = currentPath === href || currentPath.startsWith(`${href}/`);
           return (
@@ -105,12 +105,14 @@ export function AppMobileNav({ currentPath }: { currentPath: string }) {
               key={href}
               href={href}
               aria-current={isActive ? "page" : undefined}
-              className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[11px] font-medium transition-colors duration-base ease-carevo ${
-                isActive ? "bg-accent/10 text-accent" : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              className={`flex min-h-12 items-center gap-2 rounded-lg border px-3 text-xs font-medium transition-colors duration-base ease-carevo ${
+                isActive
+                  ? "border-accent/20 bg-accent/10 text-accent"
+                  : "border-border text-muted-foreground hover:bg-secondary hover:text-foreground"
               }`}
             >
-              <Icon className="h-5 w-5 stroke-[1.5]" />
-              <span className="max-w-full truncate">{label}</span>
+              <Icon className="h-4 w-4 shrink-0 stroke-[1.5]" />
+              <span className="min-w-0 truncate">{label}</span>
             </Link>
           );
         })}
