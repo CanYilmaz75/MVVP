@@ -1,6 +1,9 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import type { Route } from "next";
-import { ClipboardList, LayoutDashboard, FileAudio, FileOutput, PauseCircle, Settings, FileText } from "lucide-react";
+import { ClipboardList, LayoutDashboard, FileAudio, FileOutput, Menu, PauseCircle, Settings, FileText, X } from "lucide-react";
 
 import { LogoMark } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
@@ -95,28 +98,80 @@ export function AppSidebar({
 }
 
 export function AppMobileNav({ currentPath }: { currentPath: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const activeItem = items.find(({ href }) => currentPath === href || currentPath.startsWith(`${href}/`)) ?? items[0];
+  const ActiveIcon = activeItem.icon;
+
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-3 pb-[max(env(safe-area-inset-bottom),12px)] pt-3 backdrop-blur lg:hidden">
-      <div className="mx-auto grid max-w-md grid-cols-3 gap-2">
-        {items.map(({ href, label, icon: Icon }) => {
-          const isActive = currentPath === href || currentPath.startsWith(`${href}/`);
-          return (
-            <Link
-              key={href}
-              href={href}
-              aria-current={isActive ? "page" : undefined}
-              className={`flex min-h-12 items-center gap-2 rounded-lg border px-3 text-xs font-medium transition-colors duration-base ease-carevo ${
-                isActive
-                  ? "border-accent/20 bg-accent/10 text-accent"
-                  : "border-border text-muted-foreground hover:bg-secondary hover:text-foreground"
-              }`}
-            >
-              <Icon className="h-4 w-4 shrink-0 stroke-[1.5]" />
-              <span className="min-w-0 truncate">{label}</span>
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
+    <>
+      {isOpen ? (
+        <div className="fixed inset-0 z-40 bg-primary/20 lg:hidden" onClick={() => setIsOpen(false)} />
+      ) : null}
+
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card/95 px-4 pb-[max(env(safe-area-inset-bottom),12px)] pt-3 backdrop-blur lg:hidden">
+        {isOpen ? (
+          <div className="mx-auto mb-3 max-w-md rounded-lg border border-border bg-card shadow-subtle">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <div>
+                <p className="text-xs uppercase text-muted-foreground">CAREVO</p>
+                <p className="text-sm font-semibold">Navigation</p>
+              </div>
+              <button
+                type="button"
+                className="flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                aria-label="Menue schliessen"
+                onClick={() => setIsOpen(false)}
+              >
+                <X className="h-5 w-5 stroke-[1.5]" />
+              </button>
+            </div>
+
+            <div className="p-2">
+              {items.map(({ href, label, icon: Icon }) => {
+                const isActive = currentPath === href || currentPath.startsWith(`${href}/`);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    aria-current={isActive ? "page" : undefined}
+                    onClick={() => setIsOpen(false)}
+                    className={`flex min-h-12 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors duration-base ease-carevo ${
+                      isActive ? "bg-accent/10 text-accent" : "text-secondary-foreground hover:bg-secondary hover:text-foreground"
+                    }`}
+                  >
+                    <Icon className="h-5 w-5 shrink-0 stroke-[1.5]" />
+                    <span>{label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+
+        <div className="mx-auto flex max-w-md items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-2 shadow-subtle">
+          <div className="flex min-w-0 items-center gap-3">
+            <ActiveIcon className="h-5 w-5 shrink-0 stroke-[1.5] text-accent" />
+            <div className="min-w-0">
+              <p className="text-[11px] uppercase text-muted-foreground">Aktuell</p>
+              <p className="truncate text-sm font-semibold">{activeItem.label}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="flex h-11 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-accent-foreground transition-colors duration-base ease-carevo hover:bg-accent/90"
+            aria-expanded={isOpen}
+            aria-label={isOpen ? "Menue schliessen" : "Menue oeffnen"}
+            onClick={() => setIsOpen((current) => !current)}
+          >
+            {isOpen ? (
+              <X className="h-5 w-5 stroke-[1.5]" />
+            ) : (
+              <Menu className="h-5 w-5 stroke-[1.5]" />
+            )}
+            Menü
+          </button>
+        </div>
+      </nav>
+    </>
   );
 }
