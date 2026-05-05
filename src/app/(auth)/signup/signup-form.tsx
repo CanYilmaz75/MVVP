@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LogoMark } from "@/components/shared/logo";
+import { clientEnv } from "@/lib/env/client";
 import { createClient } from "@/server/supabase/browser";
 
 export function SignupForm() {
@@ -40,6 +41,7 @@ export function SignupForm() {
         email,
         password,
         options: {
+          emailRedirectTo: `${clientEnv.NEXT_PUBLIC_APP_URL}/login`,
           data: isInvite
             ? {
                 full_name: fullName,

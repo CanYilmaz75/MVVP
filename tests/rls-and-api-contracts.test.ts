@@ -9,6 +9,10 @@ const productionCareBoundaryMigration = readFileSync(
   join(process.cwd(), "supabase/migrations/0010_production_care_boundaries.sql"),
   "utf8"
 );
+const signupTriggerFixMigration = readFileSync(
+  join(process.cwd(), "supabase/migrations/0011_fix_signup_trigger_care_setting.sql"),
+  "utf8"
+);
 
 test("pilot RLS migration removes broad tenant all-policies for high-risk tables", () => {
   for (const policyName of [
@@ -87,4 +91,15 @@ test("production care boundaries are enforced in the database", () => {
   assert.match(productionCareBoundaryMigration, /medical_practice' and new\.consultation_type <> 'medical_consultation'/);
   assert.match(productionCareBoundaryMigration, /care_facility' and new\.consultation_type = 'medical_consultation'/);
   assert.match(productionCareBoundaryMigration, /care protocols are only allowed for care_consultation/);
+});
+
+test("signup trigger fix preserves billing schema and adds care setting", () => {
+  assert.match(signupTriggerFixMigration, /create or replace function public\.handle_new_user/);
+  assert.match(signupTriggerFixMigration, /token_hash = encode\(digest/);
+  assert.match(signupTriggerFixMigration, /previous_active_seats/);
+  assert.match(signupTriggerFixMigration, /new_active_seats/);
+  assert.match(signupTriggerFixMigration, /reason/);
+  assert.match(signupTriggerFixMigration, /care_setting/);
+  assert.doesNotMatch(signupTriggerFixMigration, /event_type/);
+  assert.doesNotMatch(signupTriggerFixMigration, /where token =/);
 });
