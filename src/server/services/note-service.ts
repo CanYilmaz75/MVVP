@@ -312,6 +312,11 @@ Regeln:
 - Leite offene Themen/Fragen aus den ausgewaehlten Protokollen ab, wenn notwendige Angaben in den Quellen fehlen.
 - Bei DNQP-nahen Themen wie Schmerz, Sturz, Dekubitus, chronische Wunden, Ernaehrung und Kontinenz fachlich nah an den Expertenstandards bleiben, ohne unbelegte Details zu erfinden.
 - Bei Hygiene auf einrichtungsspezifische Hygieneplaene, IfSG-Pflichten und KRINKO/RKI-Empfehlungen verweisen, wenn konkrete Verfahren fehlen oder geklaert werden muessen.
+- Bei Beratungsart "Beratung fuer Praxen und Mediziner" moegliche ICD-10-GM-Kandidaten in sections.assessment.possibleIcdCodes liefern.
+- ICD-Kandidaten nur aus klar gestuetzten Beschwerden, Befunden oder Diagnosen ableiten. Keine Abrechnungskodierung finalisieren.
+- ICD-Kandidaten im Format "Code - Bezeichnung (Kandidat; Evidenz: kurze Quellenbegruendung; Pruefen: offene Unsicherheit)" schreiben.
+- Wenn keine ausreichend belastbare Evidenz fuer ICD-Kandidaten vorliegt, possibleIcdCodes leer lassen und die fehlenden Informationen in openQuestions aufnehmen.
+- Bei Pflegeberatung und SIS possibleIcdCodes leer lassen.
 
 Kontext:
 - Fachbereich: ${consultation.specialty}

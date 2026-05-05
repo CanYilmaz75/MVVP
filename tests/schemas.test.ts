@@ -78,7 +78,7 @@ test("SOAP note schema accepts sparse but review-required draft notes", () => {
     sections: {
       subjective: { chiefComplaint: "", historyOfPresentIllness: "", reportedSymptoms: [] },
       objective: { examFindings: [], observations: [], vitals: [] },
-      assessment: { clinicalSummary: "", possibleDiagnoses: [] },
+      assessment: { clinicalSummary: "", possibleDiagnoses: [], possibleIcdCodes: [] },
       plan: { medications: [], followUp: "", referrals: [], testsOrdered: [], instructions: [] }
     },
     openQuestions: [],
@@ -87,7 +87,13 @@ test("SOAP note schema accepts sparse but review-required draft notes", () => {
   });
 
   assert.equal(parsed.requiresReview, true);
+  assert.deepEqual(parsed.sections.assessment.possibleIcdCodes, []);
   assert.deepEqual(soapNoteJsonSchema.properties.requiresReview.enum, [true]);
+  assert.deepEqual(soapNoteJsonSchema.properties.sections.properties.assessment.required, [
+    "clinicalSummary",
+    "possibleDiagnoses",
+    "possibleIcdCodes"
+  ]);
 });
 
 test("SIS schema requires all six topics and all pilot risk keys", () => {

@@ -108,6 +108,7 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
       objectiveVitals: arraysToText(noteDraft.sections.objective.vitals),
       assessmentSummary: noteDraft.sections.assessment.clinicalSummary,
       assessmentDiagnoses: arraysToText(noteDraft.sections.assessment.possibleDiagnoses),
+      assessmentIcdCodes: arraysToText(noteDraft.sections.assessment.possibleIcdCodes),
       planMeds: arraysToText(noteDraft.sections.plan.medications),
       planFollowUp: noteDraft.sections.plan.followUp,
       planReferrals: arraysToText(noteDraft.sections.plan.referrals),
@@ -1192,6 +1193,31 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
                         )
                       }
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="font-medium">ICD-10-GM Kandidaten</p>
+                    <Textarea
+                      value={noteSectionFields.assessmentIcdCodes}
+                      onChange={(event) =>
+                        setNoteDraft((current) =>
+                          current
+                            ? {
+                                ...current,
+                                sections: {
+                                  ...current.sections,
+                                  assessment: {
+                                    ...current.sections.assessment,
+                                    possibleIcdCodes: textToArray(event.target.value)
+                                  }
+                                }
+                              }
+                            : current
+                        )
+                      }
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Kandidaten muessen aerztlich geprueft werden und sind keine finale Kodierung.
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <p className="font-medium">Medikation</p>

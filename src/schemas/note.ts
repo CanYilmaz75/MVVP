@@ -20,7 +20,8 @@ export const soapNoteSchema = z.object({
     }),
     assessment: z.object({
       clinicalSummary: z.string(),
-      possibleDiagnoses: stringArray
+      possibleDiagnoses: stringArray,
+      possibleIcdCodes: stringArray.default([])
     }),
     plan: z.object({
       medications: stringArray,
@@ -72,10 +73,11 @@ export const soapNoteJsonSchema = {
         assessment: {
           type: "object",
           additionalProperties: false,
-          required: ["clinicalSummary", "possibleDiagnoses"],
+          required: ["clinicalSummary", "possibleDiagnoses", "possibleIcdCodes"],
           properties: {
             clinicalSummary: { type: "string" },
-            possibleDiagnoses: { type: "array", items: { type: "string", minLength: 1 } }
+            possibleDiagnoses: { type: "array", items: { type: "string", minLength: 1 } },
+            possibleIcdCodes: { type: "array", items: { type: "string", minLength: 1 } }
           }
         },
         plan: {

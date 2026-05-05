@@ -19,6 +19,7 @@ export function renderSoapNote(note: SoapNote) {
     "Assessment",
     `Clinical Summary: ${note.sections.assessment.clinicalSummary || "-"}`,
     `Possible Diagnoses:\n${renderList(note.sections.assessment.possibleDiagnoses)}`,
+    `ICD-10-GM Candidates for clinician review:\n${renderList(note.sections.assessment.possibleIcdCodes)}`,
     "",
     "Plan",
     `Medications:\n${renderList(note.sections.plan.medications)}`,

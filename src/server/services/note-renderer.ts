@@ -19,6 +19,7 @@ export function renderSoapNote(note: SoapNote) {
     "Einschaetzung",
     `Klinische Zusammenfassung: ${note.sections.assessment.clinicalSummary || "-"}`,
     `Moegliche Diagnosen:\n${renderList(note.sections.assessment.possibleDiagnoses)}`,
+    `ICD-10-GM Kandidaten zur aerztlichen Pruefung:\n${renderList(note.sections.assessment.possibleIcdCodes)}`,
     "",
     "Plan",
     `Medikation:\n${renderList(note.sections.plan.medications)}`,

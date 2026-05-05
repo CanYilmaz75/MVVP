@@ -8,7 +8,6 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { CARE_PROTOCOLS, type CareProtocolSlug } from "@/lib/care-protocols";
 import { isCareFacility, type CareSetting } from "@/lib/care-setting";
@@ -95,12 +94,9 @@ export function NewConsultationForm({
   });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{consultationLabel} starten</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form className="space-y-5" onSubmit={onSubmit}>
+    <div className="w-full">
+      <h2 className="text-2xl font-semibold">{consultationLabel} starten</h2>
+      <form className="mt-6 space-y-5" onSubmit={onSubmit}>
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="patientReference">
               Patientenreferenz
@@ -202,8 +198,7 @@ export function NewConsultationForm({
               {isPending ? "Wird gestartet..." : "Beratung starten"}
             </Button>
           </div>
-        </form>
-      </CardContent>
-    </Card>
+      </form>
+    </div>
   );
 }

@@ -20,7 +20,8 @@ export const soapNoteSchema = z.object({
     }),
     assessment: z.object({
       clinicalSummary: z.string(),
-      possibleDiagnoses: stringArray
+      possibleDiagnoses: stringArray,
+      possibleIcdCodes: stringArray.default([])
     }),
     plan: z.object({
       medications: stringArray,

@@ -60,7 +60,7 @@ export function validateNoteAgainstTranscript(note: SoapNote, transcriptText: st
     }
   }
 
-  const assessmentText = `${note.sections.assessment.clinicalSummary} ${note.sections.assessment.possibleDiagnoses.join(" ")}`.toLowerCase();
+  const assessmentText = `${note.sections.assessment.clinicalSummary} ${note.sections.assessment.possibleDiagnoses.join(" ")} ${note.sections.assessment.possibleIcdCodes.join(" ")}`.toLowerCase();
   if (
     criticalAmbiguityTerms.some((term) => assessmentText.includes(term))
     && note.openQuestions.length === 0
