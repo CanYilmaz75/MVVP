@@ -83,9 +83,9 @@ export function ProtectedShell({
         pausedConsultations={pausedConsultations}
         userName={userName}
       />
-      <div className="flex min-h-screen flex-1 flex-col">
+      <div className="flex min-h-screen flex-1 flex-col bg-background">
         <AppHeader title={pageMeta.title} subtitle={pageMeta.subtitle} />
-        <main className="mx-auto flex w-full max-w-7xl flex-1 px-4 py-6 sm:px-8 lg:px-10 xl:px-20">{children}</main>
+        <main className="mx-auto flex w-full max-w-7xl flex-1 px-4 pb-6 pt-2 sm:px-8 lg:px-10 xl:px-20">{children}</main>
       </div>
       <AppMobileNav careSetting={careSetting} currentPath={pathname} />
     </div>

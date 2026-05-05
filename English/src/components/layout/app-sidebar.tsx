@@ -1,8 +1,7 @@
 import Link from "next/link";
 import type { Route } from "next";
-import { ClipboardList, LayoutDashboard, FileAudio, FileOutput, Settings, FileText } from "lucide-react";
+import { ClipboardList, LayoutDashboard, FileAudio, Settings, FileText } from "lucide-react";
 
-import { LogoMark } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 
 const items: Array<{ href: Route; label: string; icon: typeof LayoutDashboard }> = [
@@ -10,7 +9,6 @@ const items: Array<{ href: Route; label: string; icon: typeof LayoutDashboard }>
   { href: "/consultations", label: "Consultations", icon: FileAudio },
   { href: "/sis", label: "SIS", icon: ClipboardList },
   { href: "/templates", label: "Templates", icon: FileText },
-  { href: "/exports", label: "Exports", icon: FileOutput },
   { href: "/settings", label: "Settings", icon: Settings }
 ];
 
@@ -25,15 +23,7 @@ export function AppSidebar({
 }) {
   return (
     <aside className="hidden w-72 flex-col border-r bg-card px-5 py-6 lg:flex">
-      <div className="flex items-center gap-3">
-        <LogoMark />
-        <div>
-          <p className="text-sm font-medium text-muted-foreground">Ambient Clinical Documentation</p>
-          <p className="text-lg font-semibold">CAREVO</p>
-        </div>
-      </div>
-
-      <nav className="mt-8 flex flex-1 flex-col gap-1">
+      <nav className="flex flex-1 flex-col gap-1">
         {items.map(({ href, label, icon: Icon }) => {
           const isActive = currentPath === href || currentPath.startsWith(`${href}/`);
           return (

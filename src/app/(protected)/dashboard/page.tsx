@@ -34,13 +34,32 @@ export default async function DashboardPage() {
       value: consultations.length ? "Ziel <60s" : "0m"
     }
   ];
+  const openDrafts = consultations.filter((item: Awaited<ReturnType<typeof listConsultations>>[number]) => item.status === "draft_ready");
+  const pausedConsultations = consultations.filter((item: Awaited<ReturnType<typeof listConsultations>>[number]) => item.status === "paused");
+  const inProgressConsultations = consultations.filter((item: Awaited<ReturnType<typeof listConsultations>>[number]) =>
+    ["created", "recording", "audio_uploaded", "transcribing", "transcript_ready", "note_generating"].includes(item.status)
+  );
+  const workItems = [
+    {
+      label: "Entwürfe prüfen",
+      value: openDrafts.length,
+      href: "/consultations" as Route
+    },
+    {
+      label: "Pausierte Gespräche fortsetzen",
+      value: pausedConsultations.length,
+      href: "/consultations" as Route
+    },
+    {
+      label: "Laufende Vorgänge abschließen",
+      value: inProgressConsultations.length,
+      href: "/consultations" as Route
+    }
+  ];
 
   return (
     <div className="w-full space-y-10">
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-        <Button asChild variant="ghost" className="border border-border px-5 hover:bg-secondary">
-          <Link href="/demo-buchen">Demo buchen</Link>
-        </Button>
         <Button asChild className="px-5">
           <Link href="/consultations/new">Beratung starten</Link>
         </Button>
@@ -103,20 +122,28 @@ export default async function DashboardPage() {
 
         <div className="space-y-6 border-l-0 xl:border-l xl:border-border/70 xl:pl-10">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-normal text-muted-foreground">Fokus heute</p>
+            <p className="text-xs font-semibold uppercase tracking-normal text-muted-foreground">Aufgaben</p>
             <h2
               className="mt-2 text-3xl font-semibold tracking-normal"
             >
-              Weniger Masken. Mehr Klarheit.
+              Was als Nächstes ansteht
             </h2>
           </div>
 
-          <div className="space-y-5 text-sm leading-7 text-muted-foreground">
-            <p>Nutzen Sie das Dashboard als ruhigen Einstieg in offene Entwuerfe, laufende Beratungen und Freigaben.</p>
-            <p>Die Arbeitsflaeche soll nicht nach KI-Tool aussehen, sondern nach einem klaren operativen Produkt fuer reale Versorgung.</p>
+          <div className="divide-y divide-border/70 border-y border-border/70">
+            {workItems.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="flex items-center justify-between gap-4 py-4 text-sm transition-colors hover:text-secondary-foreground"
+              >
+                <span className="font-medium">{item.label}</span>
+                <span className="text-2xl font-semibold tracking-normal">{item.value}</span>
+              </Link>
+            ))}
           </div>
 
-          <div className="space-y-3 border-t border-border/70 pt-5">
+          <div className="space-y-3 pt-1">
             <Button asChild variant="ghost" className="w-full justify-between rounded-none border-b border-border/70 px-0 py-0 pb-3 hover:bg-transparent">
               <Link href="/consultations">
                 Zu allen Beratungen
@@ -126,12 +153,6 @@ export default async function DashboardPage() {
             <Button asChild variant="ghost" className="w-full justify-between rounded-none border-b border-border/70 px-0 py-0 pb-3 hover:bg-transparent">
               <Link href="/consultations/new">
                 Neue Beratung starten
-                <ArrowUpRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="ghost" className="w-full justify-between rounded-none border-b border-border/70 px-0 py-0 pb-3 hover:bg-transparent">
-              <Link href="/demo-buchen">
-                Demo buchen
                 <ArrowUpRight className="h-4 w-4" />
               </Link>
             </Button>

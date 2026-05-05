@@ -18,13 +18,25 @@ const schema = z.object({
   patientReference: z.string().min(2, "Patientenreferenz ist erforderlich."),
   specialty: z.string().min(2, "Fachbereich ist erforderlich."),
   spokenLanguage: z.string().min(2, "Sprache ist erforderlich."),
+  noteTemplateId: z.string().optional(),
   consultationType: z.enum(["care_consultation", "medical_consultation"]),
   careProtocols: z.array(z.string()).optional()
 });
 
 type FormValues = z.infer<typeof schema>;
+export type ConsultationTemplateOption = {
+  id: string;
+  name: string;
+  specialty: string;
+};
 
-export function NewConsultationForm({ careSetting }: { careSetting: CareSetting }) {
+export function NewConsultationForm({
+  careSetting,
+  templates
+}: {
+  careSetting: CareSetting;
+  templates: ConsultationTemplateOption[];
+}) {
   const router = useRouter();
   const isCare = isCareFacility(careSetting);
   const consultationLabel = isCare ? "Pflegeberatung" : "Beratung fuer Praxen und Mediziner";
@@ -38,6 +50,7 @@ export function NewConsultationForm({ careSetting }: { careSetting: CareSetting 
       patientReference: "",
       specialty: specialtyDefault,
       spokenLanguage: "de",
+      noteTemplateId: "",
       consultationType,
       careProtocols: []
     }
@@ -95,13 +108,17 @@ export function NewConsultationForm({ careSetting }: { careSetting: CareSetting 
             <Input id="patientReference" {...form.register("patientReference")} />
             <p className="text-sm text-destructive">{form.formState.errors.patientReference?.message}</p>
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="specialty">
-              Bereich
-            </label>
-            <Input id="specialty" readOnly {...form.register("specialty")} />
-            <p className="text-sm text-destructive">{form.formState.errors.specialty?.message}</p>
-          </div>
+          {isCare ? (
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="specialty">
+                Bereich
+              </label>
+              <Input id="specialty" readOnly {...form.register("specialty")} />
+              <p className="text-sm text-destructive">{form.formState.errors.specialty?.message}</p>
+            </div>
+          ) : (
+            <input type="hidden" {...form.register("specialty")} />
+          )}
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="spokenLanguage">
               Spracheinstellung
@@ -120,13 +137,36 @@ export function NewConsultationForm({ careSetting }: { careSetting: CareSetting 
             </p>
             <p className="text-sm text-destructive">{form.formState.errors.spokenLanguage?.message}</p>
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="consultationType">
-              Beratungsart
-            </label>
-            <Input id="consultationTypeLabel" readOnly value={consultationLabel} />
+          {templates.length ? (
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="noteTemplateId">
+                Vorlage
+              </label>
+              <select
+                id="noteTemplateId"
+                className="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm"
+                {...form.register("noteTemplateId")}
+              >
+                <option value="">Keine Vorlage</option>
+                {templates.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.name} · {template.specialty}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+          {isCare ? (
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="consultationType">
+                Beratungsart
+              </label>
+              <Input id="consultationTypeLabel" readOnly value={consultationLabel} />
+              <input type="hidden" {...form.register("consultationType")} />
+            </div>
+          ) : (
             <input type="hidden" {...form.register("consultationType")} />
-          </div>
+          )}
           {isCare ? (
             <div className="space-y-3">
               <div>

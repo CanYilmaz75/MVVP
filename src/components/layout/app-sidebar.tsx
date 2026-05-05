@@ -3,9 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { Route } from "next";
-import { ClipboardList, LayoutDashboard, FileAudio, FileOutput, Menu, PauseCircle, Settings, FileText, X } from "lucide-react";
+import { ClipboardList, LayoutDashboard, FileAudio, Menu, PauseCircle, Settings, FileText, X } from "lucide-react";
 
-import { LogoMark } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import { isCareFacility, type CareSetting } from "@/lib/care-setting";
 import type { PausedConsultationSummary } from "@/server/services/consultation-service";
@@ -15,7 +14,6 @@ const items: Array<{ href: Route; label: string; icon: typeof LayoutDashboard; c
   { href: "/consultations", label: "Beratungen", icon: FileAudio },
   { href: "/sis", label: "SIS", icon: ClipboardList, careOnly: true },
   { href: "/templates", label: "Vorlagen", icon: FileText },
-  { href: "/exports", label: "Exporte", icon: FileOutput },
   { href: "/settings", label: "Einstellungen", icon: Settings }
 ];
 
@@ -44,15 +42,7 @@ export function AppSidebar({
 }) {
   return (
     <aside className="hidden w-64 flex-col border-r border-border bg-card px-5 py-8 md:flex xl:w-72 xl:px-6">
-      <div className="flex items-center gap-3">
-        <LogoMark />
-        <div>
-          <p className="text-sm font-medium text-muted-foreground">Pflege & Versorgung</p>
-          <p className="text-lg font-semibold">CAREVO</p>
-        </div>
-      </div>
-
-      <nav className="mt-12 flex flex-1 flex-col gap-1">
+      <nav className="flex flex-1 flex-col gap-1">
         {visibleItems(careSetting).map(({ href, label, icon: Icon }) => {
           const isActive = currentPath === href || currentPath.startsWith(`${href}/`);
           return (
