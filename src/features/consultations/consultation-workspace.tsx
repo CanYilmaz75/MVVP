@@ -838,7 +838,7 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
               </div>
 
               {showAdditionalTextForm ? (
-                <div className="space-y-3 rounded-lg border bg-background p-3">
+                <div className="space-y-3 rounded-lg border bg-[#f4f4f6] p-3">
                   <Input
                     placeholder="Titel, z. B. Frühere Arztnotiz"
                     value={additionalTextTitle}
@@ -1013,7 +1013,7 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
           <CardContent>
             {workspace.note && noteDraft && noteSectionFields ? (
               <div className="space-y-5">
-                <div className="rounded-lg border bg-background p-4">
+                <div className="rounded-lg border bg-[#f4f4f6] p-4">
                   <pre className="whitespace-pre-wrap font-sans text-sm leading-6">{workspace.note.rendered_text}</pre>
                 </div>
 

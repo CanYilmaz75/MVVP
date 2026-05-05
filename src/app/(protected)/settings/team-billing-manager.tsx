@@ -216,7 +216,7 @@ export function TeamBillingManager({ initialData }: { initialData: TeamData }) {
           <form className="grid gap-3 md:grid-cols-[1fr_1fr_10rem_auto]" onSubmit={createInvite}>
             <Input name="email" type="email" placeholder="E-Mail" required />
             <Input name="fullName" placeholder="Name optional" />
-            <select name="role" className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+            <select name="role" className="h-10 rounded-md border border-input bg-[#f4f4f6] px-3 text-sm">
               <option value="clinician">Clinician</option>
               <option value="admin">Admin</option>
             </select>
