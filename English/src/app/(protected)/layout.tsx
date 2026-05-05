@@ -59,6 +59,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   return (
     <div className="min-h-screen bg-background lg:flex">
       <AppSidebar
+        careSetting={auth.organisation.care_setting}
         currentPath={pathname}
         organisationName={auth.organisationName}
         userName={auth.profile.full_name || "Clinician"}

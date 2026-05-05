@@ -5,6 +5,10 @@ import { join } from "node:path";
 
 const migration = readFileSync(join(process.cwd(), "supabase/migrations/0005_pilot_hardening.sql"), "utf8");
 const b2bMigration = readFileSync(join(process.cwd(), "supabase/migrations/0006_b2b_saas_billing.sql"), "utf8");
+const productionCareBoundaryMigration = readFileSync(
+  join(process.cwd(), "supabase/migrations/0010_production_care_boundaries.sql"),
+  "utf8"
+);
 
 test("pilot RLS migration removes broad tenant all-policies for high-risk tables", () => {
   for (const policyName of [
@@ -73,4 +77,14 @@ test("b2b SaaS signup trigger handles invites and creates first-admin subscripti
   assert.match(b2bMigration, /'admin'/);
   assert.match(b2bMigration, /insert into public\.subscriptions/);
   assert.match(b2bMigration, /insert into public\.billing_seat_events/);
+});
+
+test("production care boundaries are enforced in the database", () => {
+  assert.match(productionCareBoundaryMigration, /consultations_consultation_type_valid/);
+  assert.match(productionCareBoundaryMigration, /consultations_care_protocols_valid/);
+  assert.match(productionCareBoundaryMigration, /consultations_care_protocols_only_for_care/);
+  assert.match(productionCareBoundaryMigration, /enforce_consultation_care_boundary/);
+  assert.match(productionCareBoundaryMigration, /medical_practice' and new\.consultation_type <> 'medical_consultation'/);
+  assert.match(productionCareBoundaryMigration, /care_facility' and new\.consultation_type = 'medical_consultation'/);
+  assert.match(productionCareBoundaryMigration, /care protocols are only allowed for care_consultation/);
 });

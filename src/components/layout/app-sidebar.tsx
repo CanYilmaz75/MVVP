@@ -7,23 +7,36 @@ import { ClipboardList, LayoutDashboard, FileAudio, FileOutput, Menu, PauseCircl
 
 import { LogoMark } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
+import { isCareFacility, type CareSetting } from "@/lib/care-setting";
 import type { PausedConsultationSummary } from "@/server/services/consultation-service";
 
-const items: Array<{ href: Route; label: string; icon: typeof LayoutDashboard }> = [
+const items: Array<{ href: Route; label: string; icon: typeof LayoutDashboard; careOnly?: boolean }> = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/consultations", label: "Beratungen", icon: FileAudio },
-  { href: "/sis", label: "SIS", icon: ClipboardList },
+  { href: "/sis", label: "SIS", icon: ClipboardList, careOnly: true },
   { href: "/templates", label: "Vorlagen", icon: FileText },
   { href: "/exports", label: "Exporte", icon: FileOutput },
   { href: "/settings", label: "Einstellungen", icon: Settings }
 ];
 
+function visibleItems(careSetting: CareSetting) {
+  return items
+    .filter((item) => !item.careOnly || isCareFacility(careSetting))
+    .map((item) =>
+      item.href === "/consultations"
+        ? { ...item, label: isCareFacility(careSetting) ? "Pflegeberatung" : "Praxisberatung" }
+        : item
+    );
+}
+
 export function AppSidebar({
+  careSetting,
   currentPath,
   organisationName,
   pausedConsultations = [],
   userName
 }: {
+  careSetting: CareSetting;
   currentPath: string;
   organisationName: string;
   pausedConsultations?: PausedConsultationSummary[];
@@ -40,7 +53,7 @@ export function AppSidebar({
       </div>
 
       <nav className="mt-12 flex flex-1 flex-col gap-1">
-        {items.map(({ href, label, icon: Icon }) => {
+        {visibleItems(careSetting).map(({ href, label, icon: Icon }) => {
           const isActive = currentPath === href || currentPath.startsWith(`${href}/`);
           return (
             <Link
@@ -97,9 +110,10 @@ export function AppSidebar({
   );
 }
 
-export function AppMobileNav({ currentPath }: { currentPath: string }) {
+export function AppMobileNav({ careSetting, currentPath }: { careSetting: CareSetting; currentPath: string }) {
   const [isOpen, setIsOpen] = useState(false);
-  const activeItem = items.find(({ href }) => currentPath === href || currentPath.startsWith(`${href}/`)) ?? items[0];
+  const navItems = visibleItems(careSetting);
+  const activeItem = navItems.find(({ href }) => currentPath === href || currentPath.startsWith(`${href}/`)) ?? navItems[0];
   const ActiveIcon = activeItem.icon;
 
   return (
@@ -127,7 +141,7 @@ export function AppMobileNav({ currentPath }: { currentPath: string }) {
             </div>
 
             <div className="p-2">
-              {items.map(({ href, label, icon: Icon }) => {
+              {navItems.map(({ href, label, icon: Icon }) => {
                 const isActive = currentPath === href || currentPath.startsWith(`${href}/`);
                 return (
                   <Link

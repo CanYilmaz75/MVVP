@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+import { CARE_PROTOCOLS } from "@/lib/care-protocols";
+
+const careProtocolSlugSchema = z.enum(CARE_PROTOCOLS.map((protocol) => protocol.slug) as [string, ...string[]]);
+const consultationTypeSchema = z.enum(["sis", "care_consultation", "medical_consultation"]);
+
 export const consultationStatusSchema = z.enum([
   "created",
   "recording",
@@ -19,7 +24,8 @@ export const createConsultationSchema = z.object({
   specialty: z.string().min(2).max(120),
   spokenLanguage: z.string().min(2).max(16),
   noteTemplateId: z.string().uuid().optional(),
-  consultationType: z.string().max(120).optional()
+  consultationType: consultationTypeSchema.optional(),
+  careProtocols: z.array(careProtocolSlugSchema).max(CARE_PROTOCOLS.length).optional()
 });
 
 export const updateConsultationSchema = z.object({

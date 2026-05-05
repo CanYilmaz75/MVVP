@@ -10,6 +10,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
 
   return (
     <ProtectedShell
+      careSetting={auth.organisation.care_setting}
       organisationName={auth.organisationName}
       pausedConsultations={pausedConsultations}
       userName={auth.profile.full_name || "Behandelnde Person"}

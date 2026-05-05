@@ -1,4 +1,6 @@
 import { AppError } from "@/lib/errors";
+import { isCareFacility } from "@/lib/care-setting";
+import { normalizeCareProtocols } from "@/lib/care-protocols";
 import { assertConsultationTransition, type ConsultationWorkflowStatus } from "@/lib/workflow-state";
 import type { SoapNote } from "@/schemas/note";
 import { createAuditLog } from "@/server/services/audit-service";
@@ -18,6 +20,8 @@ export type ConsultationWorkspaceData = {
     patient_reference: string;
     specialty: string;
     spoken_language: string;
+    consultation_type: "sis" | "care_consultation" | "medical_consultation";
+    care_protocols: string[] | null;
     status: string;
     created_at: string;
   };
@@ -67,9 +71,20 @@ export async function createConsultation(input: {
   specialty: string;
   spokenLanguage: string;
   noteTemplateId?: string;
-  consultationType?: string;
+  consultationType?: "sis" | "care_consultation" | "medical_consultation";
+  careProtocols?: string[];
 }) {
-  const { organisationId, userId, supabase } = await requireApiAuthContext();
+  const { organisation, organisationId, userId, supabase } = await requireApiAuthContext();
+  const isCare = isCareFacility(organisation.care_setting);
+  const isSisConsultation = input.consultationType === "sis";
+
+  if (isSisConsultation && !isCare) {
+    throw new AppError("SIS_NOT_AVAILABLE", "SIS ist nur fuer Pflegeeinrichtungen verfuegbar.", 403);
+  }
+
+  const specialty = isSisConsultation ? "Pflege / SIS" : isCare ? "Pflegeberatung" : "Praxis / Medizin";
+  const consultationType = isSisConsultation ? "sis" : isCare ? "care_consultation" : "medical_consultation";
+  const careProtocols = isCare && !isSisConsultation ? normalizeCareProtocols(input.careProtocols ?? []) : [];
 
   const { data, error } = await supabase
     .from("consultations")
@@ -77,10 +92,11 @@ export async function createConsultation(input: {
       organisation_id: organisationId,
       clinician_id: userId,
       patient_reference: input.patientReference,
-      specialty: input.specialty,
+      specialty,
       spoken_language: input.spokenLanguage,
       note_template_id: input.noteTemplateId ?? null,
-      consultation_type: input.consultationType ?? null,
+      consultation_type: consultationType,
+      care_protocols: careProtocols,
       status: "created",
       started_at: new Date().toISOString()
     })
@@ -98,7 +114,9 @@ export async function createConsultation(input: {
     entityId: data.id,
     action: "consultation_created",
     metadata: {
-      specialty: input.specialty,
+      specialty,
+      consultationType,
+      careProtocols,
       spokenLanguage: input.spokenLanguage
     }
   });
@@ -111,7 +129,7 @@ export async function listConsultations() {
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from("consultations")
-    .select("id, patient_reference, specialty, spoken_language, status, created_at, updated_at")
+    .select("id, patient_reference, specialty, spoken_language, consultation_type, care_protocols, status, created_at, updated_at")
     .eq("organisation_id", organisationId)
     .order("created_at", { ascending: false });
 
@@ -231,7 +249,7 @@ export async function updateConsultation(
     .update(update)
     .eq("id", consultationId)
     .eq("organisation_id", organisationId)
-    .select("id, patient_reference, specialty, spoken_language, status, created_at")
+    .select("id, patient_reference, specialty, spoken_language, consultation_type, care_protocols, status, created_at")
     .single();
 
   if (error || !data) {
@@ -332,7 +350,7 @@ export async function getConsultationWorkspace(id: string): Promise<Consultation
 
   const { data: consultation } = await supabase
     .from("consultations")
-    .select("id, patient_reference, specialty, spoken_language, status, created_at")
+    .select("id, patient_reference, specialty, spoken_language, consultation_type, care_protocols, status, created_at")
     .eq("id", id)
     .eq("organisation_id", auth.organisationId)
     .single();

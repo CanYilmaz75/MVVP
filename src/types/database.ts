@@ -18,6 +18,7 @@ export type Database = {
           customer_type: "self_service" | "enterprise";
           billing_mode: "automatic" | "manual_contract";
           enterprise_status: "none" | "requested" | "active";
+          care_setting: "care_facility" | "medical_practice";
           created_at: string;
         },
         {
@@ -27,6 +28,7 @@ export type Database = {
           customer_type?: "self_service" | "enterprise";
           billing_mode?: "automatic" | "manual_contract";
           enterprise_status?: "none" | "requested" | "active";
+          care_setting?: "care_facility" | "medical_practice";
           created_at?: string;
         },
         {
@@ -36,6 +38,7 @@ export type Database = {
           customer_type?: "self_service" | "enterprise";
           billing_mode?: "automatic" | "manual_contract";
           enterprise_status?: "none" | "requested" | "active";
+          care_setting?: "care_facility" | "medical_practice";
           created_at?: string;
         }
       >;
@@ -116,7 +119,8 @@ export type Database = {
           specialty: string;
           spoken_language: string;
           note_template_id: string | null;
-          consultation_type: string | null;
+          consultation_type: "sis" | "care_consultation" | "medical_consultation";
+          care_protocols: string[];
           status: string;
           started_at: string | null;
           ended_at: string | null;
@@ -131,7 +135,8 @@ export type Database = {
           specialty: string;
           spoken_language: string;
           note_template_id?: string | null;
-          consultation_type?: string | null;
+          consultation_type?: "sis" | "care_consultation" | "medical_consultation";
+          care_protocols?: string[];
           status?: string;
           started_at?: string | null;
           ended_at?: string | null;
@@ -146,7 +151,8 @@ export type Database = {
           specialty?: string;
           spoken_language?: string;
           note_template_id?: string | null;
-          consultation_type?: string | null;
+          consultation_type?: "sis" | "care_consultation" | "medical_consultation";
+          care_protocols?: string[];
           status?: string;
           started_at?: string | null;
           ended_at?: string | null;

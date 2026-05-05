@@ -1,4 +1,5 @@
 import { AppError } from "@/lib/errors";
+import { buildCareProtocolPrompt, getCareProtocolLabels } from "@/lib/care-protocols";
 import { assertNoteTransition } from "@/lib/workflow-state";
 import { renderSoapNote } from "@/server/services/note-renderer";
 import { createAuditLog } from "@/server/services/audit-service";
@@ -114,6 +115,22 @@ function buildSourceText(input: {
   }
 
   return blocks.join("\n\n---\n\n");
+}
+
+function consultationTypeLabel(type: string | null) {
+  if (type === "sis") {
+    return "SIS";
+  }
+
+  if (type === "care_consultation") {
+    return "Pflegeberatung";
+  }
+
+  if (type === "medical_consultation") {
+    return "Beratung fuer Praxen und Mediziner";
+  }
+
+  return "-";
 }
 
 async function persistValidationJob(
@@ -277,7 +294,9 @@ export async function generateDraftNote(input: {
   });
 
   const systemPrompt =
-    "Du bist eine Assistenz fuer klinische Dokumentation und erstellst Entwuerfe zur fachlichen Pruefung. Nutze ausschliesslich Fakten aus den bereitgestellten Quellen. Wenn etwas unsicher ist, lasse es weg und ergaenze openQuestions. Schreibe alle Inhalte auf Deutsch und gib nur gueltiges JSON zurueck.";
+    "Du bist eine Assistenz fuer klinische und pflegerische Dokumentation und erstellst Entwuerfe zur fachlichen Pruefung. Nutze ausschliesslich Fakten aus den bereitgestellten Quellen. Wenn etwas unsicher ist, lasse es weg und ergaenze openQuestions. Schreibe alle Inhalte auf Deutsch und gib nur gueltiges JSON zurueck.";
+  const selectedCareProtocolLabels = getCareProtocolLabels(consultation.care_protocols);
+  const careProtocolPrompt = buildCareProtocolPrompt(consultation.care_protocols);
   const userPrompt = `
 Aufgabe: Wandle die folgenden Quellen in einen strukturierten SOAP-Notizentwurf um.
 
@@ -289,12 +308,21 @@ Regeln:
 - riskFlags nur nutzen, wenn das Transkript klar ein Risiko oder ein fehlendes kritisches Detail nahelegt.
 - requiresReview muss true sein.
 - Inhaltliche Textwerte muessen Deutsch sein.
+- Wenn Pflegeprotokolle ausgewaehlt sind, beruecksichtige deren Leitfragen in Assessment, Plan, riskFlags und openQuestions.
+- Leite offene Themen/Fragen aus den ausgewaehlten Protokollen ab, wenn notwendige Angaben in den Quellen fehlen.
+- Bei DNQP-nahen Themen wie Schmerz, Sturz, Dekubitus, chronische Wunden, Ernaehrung und Kontinenz fachlich nah an den Expertenstandards bleiben, ohne unbelegte Details zu erfinden.
+- Bei Hygiene auf einrichtungsspezifische Hygieneplaene, IfSG-Pflichten und KRINKO/RKI-Empfehlungen verweisen, wenn konkrete Verfahren fehlen oder geklaert werden muessen.
 
 Kontext:
 - Fachbereich: ${consultation.specialty}
+- Beratungsart: ${consultationTypeLabel(consultation.consultation_type)}
+- Pflegeprotokolle: ${selectedCareProtocolLabels.length ? selectedCareProtocolLabels.join(", ") : "-"}
 - Ausgangssprache: ${consultation.spoken_language}
 - Zielsprache: de
 - Vorlage: ${JSON.stringify(getTemplateDefinitionForGeneration(template?.template_definition))}
+
+Pflegeprotokoll-Leitfragen:
+${careProtocolPrompt}
 
 Quellen:
 ${sourceText}

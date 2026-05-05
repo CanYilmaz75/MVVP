@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { AppMobileNav, AppSidebar } from "@/components/layout/app-sidebar";
+import type { CareSetting } from "@/lib/care-setting";
 import type { PausedConsultationSummary } from "@/server/services/consultation-service";
 
 function titleForPath(path: string) {
@@ -58,11 +59,13 @@ function titleForPath(path: string) {
 }
 
 export function ProtectedShell({
+  careSetting,
   children,
   organisationName,
   pausedConsultations,
   userName
 }: {
+  careSetting: CareSetting;
   children: React.ReactNode;
   organisationName: string;
   pausedConsultations: PausedConsultationSummary[];
@@ -74,6 +77,7 @@ export function ProtectedShell({
   return (
     <div className="min-h-screen bg-background pb-36 md:flex md:pb-0">
       <AppSidebar
+        careSetting={careSetting}
         currentPath={pathname}
         organisationName={organisationName}
         pausedConsultations={pausedConsultations}
@@ -83,7 +87,7 @@ export function ProtectedShell({
         <AppHeader title={pageMeta.title} subtitle={pageMeta.subtitle} />
         <main className="mx-auto flex w-full max-w-7xl flex-1 px-4 py-6 sm:px-8 lg:px-10 xl:px-20">{children}</main>
       </div>
-      <AppMobileNav currentPath={pathname} />
+      <AppMobileNav careSetting={careSetting} currentPath={pathname} />
     </div>
   );
 }

@@ -4,21 +4,23 @@ import type { Route } from "next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { isCareFacility } from "@/lib/care-setting";
 import { languageLabel } from "@/lib/language-settings";
 import { getAuthContext } from "@/server/auth/context";
 import { listConsultations } from "@/server/services/consultation-service";
 
 export default async function ConsultationsPage() {
-  await getAuthContext();
+  const auth = await getAuthContext();
+  const consultationLabel = isCareFacility(auth.organisation.care_setting) ? "Pflegeberatung" : "Praxisberatung";
   const consultations = await listConsultations();
 
   return (
     <div className="space-y-8">
       <Card>
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Beratungsliste</CardTitle>
+          <CardTitle>{consultationLabel}</CardTitle>
           <Button asChild>
-            <Link href="/consultations/new">Beratung starten</Link>
+            <Link href="/consultations/new">{consultationLabel} starten</Link>
           </Button>
         </CardHeader>
         <CardContent>
@@ -50,7 +52,7 @@ export default async function ConsultationsPage() {
                 <thead className="bg-secondary/70">
                   <tr>
                     <th className="px-4 py-3 font-medium">Patientenreferenz</th>
-                    <th className="px-4 py-3 font-medium">Fachbereich</th>
+                    <th className="px-4 py-3 font-medium">Bereich</th>
                     <th className="px-4 py-3 font-medium">Sprache</th>
                     <th className="px-4 py-3 font-medium">Status</th>
                     <th className="px-4 py-3 font-medium">Aktualisiert</th>

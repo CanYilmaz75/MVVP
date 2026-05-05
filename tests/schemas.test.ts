@@ -8,6 +8,15 @@ import { sisAssessmentJsonSchema, sisAssessmentSchema } from "../src/schemas/sis
 test("consultation API schemas reject invalid pilot-sensitive inputs", () => {
   assert.equal(createConsultationSchema.safeParse({ patientReference: "A", specialty: "x", spokenLanguage: "de" }).success, false);
   assert.equal(
+    createConsultationSchema.safeParse({
+      patientReference: "Bewohner-001",
+      specialty: "Pflegeberatung",
+      spokenLanguage: "de",
+      consultationType: "Pflegeberatung"
+    }).success,
+    false
+  );
+  assert.equal(
     completeAudioUploadSchema.safeParse({
       storagePath: "org/consult/upload/audio.exe",
       mimeType: "application/octet-stream",
@@ -15,6 +24,38 @@ test("consultation API schemas reject invalid pilot-sensitive inputs", () => {
       source: "upload"
     }).success,
     false
+  );
+});
+
+test("consultation schema separates care, medical and SIS consultation types", () => {
+  assert.equal(
+    createConsultationSchema.safeParse({
+      patientReference: "Bewohner-001",
+      specialty: "Pflegeberatung",
+      spokenLanguage: "de",
+      consultationType: "care_consultation",
+      careProtocols: ["pain", "fall"]
+    }).success,
+    true
+  );
+  assert.equal(
+    createConsultationSchema.safeParse({
+      patientReference: "Patient-001",
+      specialty: "Praxis / Medizin",
+      spokenLanguage: "de",
+      consultationType: "medical_consultation",
+      careProtocols: ["unknown_protocol"]
+    }).success,
+    false
+  );
+  assert.equal(
+    createConsultationSchema.safeParse({
+      patientReference: "SIS-001",
+      specialty: "Pflege / SIS",
+      spokenLanguage: "de",
+      consultationType: "sis"
+    }).success,
+    true
   );
 });
 

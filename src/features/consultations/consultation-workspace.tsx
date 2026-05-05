@@ -26,6 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { SoapNote } from "@/schemas/note";
 import { createClient } from "@/server/supabase/browser";
 import type { ConsultationWorkspaceData } from "@/server/services/consultation-service";
+import { getCareProtocolLabels } from "@/lib/care-protocols";
 import { LANGUAGE_DETECT_VALUE, languageLabel } from "@/lib/language-settings";
 
 type Props = {
@@ -91,6 +92,7 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
   const canExport = Boolean(workspace.note && workspace.note.status === "approved");
   const currentVersion = workspace.note?.current_version ?? 0;
   const isLanguageDetectionEnabled = workspace.consultation.spoken_language === LANGUAGE_DETECT_VALUE;
+  const careProtocolLabels = getCareProtocolLabels(workspace.consultation.care_protocols);
 
   const noteSectionFields = useMemo(() => {
     if (!noteDraft) {
@@ -722,6 +724,13 @@ export function ConsultationWorkspace({ workspace: initialWorkspace, capabilitie
               ) : null}
               <span>Gestartet: {new Date(workspace.consultation.created_at).toLocaleString()}</span>
             </div>
+            {careProtocolLabels.length ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {careProtocolLabels.map((label) => (
+                  <Badge key={label}>{label}</Badge>
+                ))}
+              </div>
+            ) : null}
           </div>
           <div className="flex flex-wrap gap-3">
             {!isPaused ? (

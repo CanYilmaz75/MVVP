@@ -16,6 +16,7 @@ export function SignupForm() {
   const isInvite = inviteToken.length > 0;
   const [fullName, setFullName] = useState("");
   const [organisationName, setOrganisationName] = useState("");
+  const [careSetting, setCareSetting] = useState<"care_facility" | "medical_practice">("care_facility");
   const [specialty, setSpecialty] = useState("");
   const [email, setEmail] = useState(invitedEmail);
   const [password, setPassword] = useState("");
@@ -48,6 +49,7 @@ export function SignupForm() {
             : {
                 full_name: fullName,
                 organisation_name: organisationName,
+                care_setting: careSetting,
                 specialty,
                 role: "admin"
               }
@@ -93,17 +95,33 @@ export function SignupForm() {
             <Input id="fullName" value={fullName} onChange={(event) => setFullName(event.target.value)} required />
           </div>
           {!isInvite ? (
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="organisationName">
-                Praxis / Einrichtung
-              </label>
-              <Input
-                id="organisationName"
-                value={organisationName}
-                onChange={(event) => setOrganisationName(event.target.value)}
-                required
-              />
-            </div>
+            <>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="organisationName">
+                  Praxis / Einrichtung
+                </label>
+                <Input
+                  id="organisationName"
+                  value={organisationName}
+                  onChange={(event) => setOrganisationName(event.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="careSetting">
+                  Organisationstyp
+                </label>
+                <select
+                  id="careSetting"
+                  className="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm"
+                  value={careSetting}
+                  onChange={(event) => setCareSetting(event.target.value as "care_facility" | "medical_practice")}
+                >
+                  <option value="care_facility">Pflegeeinrichtung</option>
+                  <option value="medical_practice">Arztpraxis / Mediziner</option>
+                </select>
+              </div>
+            </>
           ) : null}
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="specialty">

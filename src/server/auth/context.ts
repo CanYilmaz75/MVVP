@@ -2,6 +2,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 
 import { AppError } from "@/lib/errors";
+import { DEFAULT_CARE_SETTING, normalizeCareSetting, type CareSetting } from "@/lib/care-setting";
 import { createServerSupabaseClient } from "@/server/supabase/server";
 
 export type AuthContext = {
@@ -14,6 +15,7 @@ export type AuthContext = {
     customer_type: "self_service" | "enterprise";
     billing_mode: "automatic" | "manual_contract";
     enterprise_status: "none" | "requested" | "active";
+    care_setting: CareSetting;
   };
   profile: {
     id: string;
@@ -51,21 +53,25 @@ export const getAuthContext = cache(async (): Promise<AuthContext> => {
 
   const { data: organisation } = await supabase
     .from("organisations")
-    .select("id, name, customer_type, billing_mode, enterprise_status")
+    .select("id, name, customer_type, billing_mode, enterprise_status, care_setting")
     .eq("id", profile.organisation_id)
     .single();
+  const resolvedOrganisation = organisation
+    ? { ...organisation, care_setting: normalizeCareSetting(organisation.care_setting) }
+    : {
+        id: profile.organisation_id,
+        name: "Organisation",
+        customer_type: "self_service" as const,
+        billing_mode: "automatic" as const,
+        enterprise_status: "none" as const,
+        care_setting: DEFAULT_CARE_SETTING
+      };
 
   return {
     userId: user.id,
     organisationId: profile.organisation_id,
     organisationName: organisation?.name ?? "Organisation",
-    organisation: organisation ?? {
-      id: profile.organisation_id,
-      name: "Organisation",
-      customer_type: "self_service",
-      billing_mode: "automatic",
-      enterprise_status: "none"
-    },
+    organisation: resolvedOrganisation,
     profile
   };
 });
@@ -96,21 +102,25 @@ export async function requireApiAuthContext() {
 
   const { data: organisation } = await supabase
     .from("organisations")
-    .select("id, name, customer_type, billing_mode, enterprise_status")
+    .select("id, name, customer_type, billing_mode, enterprise_status, care_setting")
     .eq("id", profile.organisation_id)
     .single();
+  const resolvedOrganisation = organisation
+    ? { ...organisation, care_setting: normalizeCareSetting(organisation.care_setting) }
+    : {
+        id: profile.organisation_id,
+        name: "Organisation",
+        customer_type: "self_service" as const,
+        billing_mode: "automatic" as const,
+        enterprise_status: "none" as const,
+        care_setting: DEFAULT_CARE_SETTING
+      };
 
   return {
     userId: user.id,
     organisationId: profile.organisation_id,
     organisationName: organisation?.name ?? "Organisation",
-    organisation: organisation ?? {
-      id: profile.organisation_id,
-      name: "Organisation",
-      customer_type: "self_service",
-      billing_mode: "automatic",
-      enterprise_status: "none"
-    },
+    organisation: resolvedOrganisation,
     profile,
     supabase
   };
