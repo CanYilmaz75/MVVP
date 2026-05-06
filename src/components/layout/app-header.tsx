@@ -7,8 +7,8 @@ export function AppHeader({
 }) {
   return (
     <header
-      className="flex flex-col gap-5 bg-[#F4F4F6] px-4 py-6 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-10 xl:px-20"
-      style={{ backgroundColor: "#F4F4F6" }}
+      className="flex flex-col gap-5 bg-white px-4 py-6 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-10 xl:px-20"
+      style={{ backgroundColor: "#FFFFFF" }}
     >
       <div>
         <p className="carevo-eyebrow">Arbeitsbereich</p>

@@ -83,11 +83,11 @@ export function ProtectedShell({
         pausedConsultations={pausedConsultations}
         userName={userName}
       />
-      <div className="flex min-h-screen flex-1 flex-col bg-[#F4F4F6]" style={{ backgroundColor: "#F4F4F6" }}>
+      <div className="flex min-h-screen flex-1 flex-col bg-white" style={{ backgroundColor: "#FFFFFF" }}>
         <AppHeader title={pageMeta.title} subtitle={pageMeta.subtitle} />
         <main
-          className="mx-auto flex w-full max-w-7xl flex-1 bg-[#F4F4F6] px-4 pb-6 pt-2 sm:px-8 lg:px-10 xl:px-20"
-          style={{ backgroundColor: "#F4F4F6" }}
+          className="mx-auto flex w-full max-w-7xl flex-1 bg-white px-4 pb-6 pt-2 sm:px-8 lg:px-10 xl:px-20"
+          style={{ backgroundColor: "#FFFFFF" }}
         >
           {children}
         </main>

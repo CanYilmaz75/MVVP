@@ -41,7 +41,7 @@ export function AppSidebar({
   userName: string;
 }) {
   return (
-    <aside className="hidden w-64 flex-col border-r border-border bg-white px-5 py-8 md:flex xl:w-72 xl:px-6">
+    <aside className="z-10 m-4 mr-0 hidden h-[calc(100vh-2rem)] w-64 shrink-0 flex-col overflow-hidden rounded-lg border border-border bg-white px-5 py-8 shadow-[0_18px_45px_rgba(10,10,15,0.08)] md:sticky md:top-4 md:flex xl:w-72 xl:px-6">
       <nav className="flex flex-1 flex-col gap-1">
         {visibleItems(careSetting).map(({ href, label, icon: Icon }) => {
           const isActive = currentPath === href || currentPath.startsWith(`${href}/`);
