@@ -3,6 +3,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { ArrowRight, Check, ChevronRight, Menu, Minus } from "lucide-react";
 
+import { SiteFooter } from "@/components/layout/site-footer";
 import { CarevoWordmark } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 
@@ -257,6 +258,8 @@ export default function PricingPage() {
           </Button>
         </div>
       </section>
+
+      <SiteFooter />
     </main>
   );
 }

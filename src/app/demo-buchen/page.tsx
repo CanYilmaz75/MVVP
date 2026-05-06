@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Building2, Clock3, Sparkles } from "lucide-react";
 
+import { SiteFooter } from "@/components/layout/site-footer";
 import { CarevoWordmark } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import { DemoBookingTool } from "./demo-booking-tool";
@@ -72,6 +73,8 @@ export default function DemoBuchenPage() {
           <DemoBookingTool />
         </div>
       </section>
+
+      <SiteFooter />
     </main>
   );
 }
