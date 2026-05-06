@@ -6,7 +6,10 @@ export function AppHeader({
   subtitle?: string;
 }) {
   return (
-    <header className="flex flex-col gap-5 bg-[#f4f4f6] px-4 py-6 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-10 xl:px-20">
+    <header
+      className="flex flex-col gap-5 bg-[#F4F4F6] px-4 py-6 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-10 xl:px-20"
+      style={{ backgroundColor: "#F4F4F6" }}
+    >
       <div>
         <p className="carevo-eyebrow">Arbeitsbereich</p>
         <h1 className="mt-2 text-2xl font-semibold leading-tight sm:text-[32px]">{title}</h1>

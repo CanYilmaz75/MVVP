@@ -119,6 +119,9 @@ At least one transcription provider and one LLM provider must be configured.
 - ENABLE_ANALYTICS=true|false
 - ENABLE_SENTRY=true|false
 
+### PDF Integrity Placeholder
+- PDF_SIGNING_SECRET optional for current MVP; reserve it for future PDF signing/integrity checks.
+
 ---
 
 ## Example .env.local Template
@@ -144,6 +147,8 @@ NEXT_PUBLIC_POSTHOG_HOST=
 
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
+
+PDF_SIGNING_SECRET=
 
 ENABLE_VOICE_EDIT=true
 ENABLE_ANALYTICS=false
@@ -222,10 +227,12 @@ Never use public buckets for these artifacts.
 Use whatever package manager is chosen consistently, for example:
 
 ```bash
-pnpm install
-pnpm db:migrate
-pnpm db:seed
-pnpm dev
+npm install
+npm run dev
+npm run build
+npm run typecheck
+npm run lint
+npm test
 ```
 
 If Supabase local is used:

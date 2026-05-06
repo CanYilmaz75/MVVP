@@ -1,5 +1,18 @@
 # 03_UI_UX_SPEC.md
 
+## Current UI Direction
+
+Last updated: 2026-05-06.
+
+The active CAREVO UI follows the internal design philosophy "Klinische Stille":
+- neutral app canvas `#F4F4F6`
+- restrained white surfaces and thin dividers
+- low-noise typography with normal letter spacing
+- fewer decorative cards, more structured bands, lists and task areas
+- route-aware protected shell with contextual page title/subtitle
+- care-setting-aware navigation labels: `Pflegeberatung` for care facilities, `Praxisberatung` for medical practices
+- SIS appears only for care-facility organisations
+
 ## Objective
 
 Build a polished, production-grade desktop-first MedTech SaaS interface for CAREVO.
@@ -38,7 +51,7 @@ The clinician must always understand:
 - no playful gradient-heavy consumer style
 
 ### Core colors
-- page background: soft neutral gray
+- page background: `#F4F4F6`
 - cards: white
 - borders: light gray
 - primary action: muted blue
@@ -113,19 +126,20 @@ Requirements:
 
 ### /dashboard
 Top row:
-- page title
-- welcome line
 - primary CTA: Start Consultation
 
 Body:
-- KPI cards:
+- KPI metric row:
   - consultations today
   - drafts pending
   - approved notes
   - avg processing time
 - recent consultations list
-- drafts awaiting review list
-- quick actions
+- task queue:
+  - drafts awaiting review
+  - paused consultations
+  - in-progress consultations
+- quick links to all consultations and new consultation
 
 Empty state:
 - no consultations illustration/icon
@@ -149,6 +163,7 @@ Requirements:
   - updated at
   - actions
 - row click opens workspace
+- label changes to `Pflegeberatung` or `Praxisberatung` depending on organisation care setting
 
 ### /consultations/new
 Short start form:
@@ -157,9 +172,24 @@ Short start form:
 - spoken language
 - note template
 - consultation type optional
+- care protocol options are constrained by organisation care setting so nursing and medical treatment flows stay separated
 Buttons:
 - cancel
 - start consultation
+
+### /sis
+Care-facility-only workflow.
+
+Requirements:
+- SIS audio/text entry
+- patient/person reference and guiding question
+- six SIS topic fields
+- individual perspective, professional assessment, resources and support needs per topic
+- risk assessment with relevant/not relevant and depth only where needed
+- generated measures focus
+- versioned save behavior
+- copyable SIS summary
+- visible link into existing consultation/audio pipeline
 
 ### /consultations/[id]
 This is the core workspace.
@@ -305,6 +335,7 @@ Flow:
 ### Shared
 - AppSidebar
 - AppHeader
+- AppMobileNav
 - StatusBadge
 - PageHeader
 - EmptyState
@@ -326,6 +357,13 @@ Flow:
 - VoiceEditDrawer
 - ApproveNoteDialog
 - ExportDialog
+
+### SIS-specific
+- SisWorkspace
+- SIS topic field editor
+- SIS risk assessment controls
+- SIS measures preview
+- SIS summary copy action
 
 ### Data display
 - ConsultationTable
@@ -397,3 +435,4 @@ Do not let mobile complexity degrade desktop quality.
 - create realistic mock data for story-like preview if backend unavailable
 - no hardcoded demo data in final protected routes
 - route-level loading and error boundaries where appropriate
+- preserve the neutral shell background across page wrapper, header and main content to avoid white seams during scrolling or route transitions

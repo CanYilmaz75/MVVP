@@ -1,5 +1,18 @@
 # CODEGEN_EXECUTION_PROMPT.md
 
+## CURRENT STATE OVERRIDE
+
+Last updated: 2026-05-06.
+
+This repository already contains an active German CAREVO implementation in the root and `src/`. The English source/docs under `English/` are historical reference material.
+
+Do not restart from an empty scaffold. Before coding, inspect the existing Next.js 15/Supabase codebase and preserve:
+- `care_facility` vs. `medical_practice` organisation separation
+- SIS workflow, APIs and versioned persistence
+- protected shell, adaptive navigation and paused-consultation surfacing
+- team, billing and signup hardening
+- the "Klinische Stille" UI direction, including `#F4F4F6` app background consistency
+
 You are the lead software engineer, solutions architect, security reviewer, and product-minded implementation agent for this project.
 
 Your job is to take the attached CAREVO specification package and produce a **working, production-grade MVP codebase** for a controlled pilot environment.
@@ -25,6 +38,7 @@ Build CAREVO as a real end-to-end MVP that supports:
 11. PDF export
 12. audit logging
 13. secure multitenant organization scoping
+14. care-facility SIS workflow with reviewable, versioned structured output
 
 This is not a design exercise.
 This is not a hackathon demo.
@@ -160,7 +174,7 @@ You must not begin blindly.
 ---
 
 ### Step 2: Establish the project skeleton
-Create a production-grade repository structure including:
+Verify and extend the existing production-grade repository structure including:
 
 - app/
 - components/
@@ -172,7 +186,7 @@ Create a production-grade repository structure including:
 - types/
 - schemas/
 
-Add:
+Preserve and improve:
 - env validation
 - linting
 - formatting

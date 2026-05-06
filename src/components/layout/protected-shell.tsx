@@ -75,7 +75,7 @@ export function ProtectedShell({
   const pageMeta = titleForPath(pathname);
 
   return (
-    <div className="min-h-screen bg-[#f4f4f6] pb-36 md:flex md:pb-0">
+    <div className="min-h-screen bg-[#F4F4F6] pb-36 md:flex md:pb-0" style={{ backgroundColor: "#F4F4F6" }}>
       <AppSidebar
         careSetting={careSetting}
         currentPath={pathname}
@@ -83,9 +83,14 @@ export function ProtectedShell({
         pausedConsultations={pausedConsultations}
         userName={userName}
       />
-      <div className="flex min-h-screen flex-1 flex-col bg-[#f4f4f6]">
+      <div className="flex min-h-screen flex-1 flex-col bg-[#F4F4F6]" style={{ backgroundColor: "#F4F4F6" }}>
         <AppHeader title={pageMeta.title} subtitle={pageMeta.subtitle} />
-        <main className="mx-auto flex w-full max-w-7xl flex-1 px-4 pb-6 pt-2 sm:px-8 lg:px-10 xl:px-20">{children}</main>
+        <main
+          className="mx-auto flex w-full max-w-7xl flex-1 bg-[#F4F4F6] px-4 pb-6 pt-2 sm:px-8 lg:px-10 xl:px-20"
+          style={{ backgroundColor: "#F4F4F6" }}
+        >
+          {children}
+        </main>
       </div>
       <AppMobileNav careSetting={careSetting} currentPath={pathname} />
     </div>

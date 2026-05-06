@@ -58,7 +58,7 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <div className="w-full space-y-10">
+    <div className="w-full space-y-10 bg-[#F4F4F6]" style={{ backgroundColor: "#F4F4F6" }}>
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
         <Button asChild className="px-5">
           <Link href="/consultations/new">Beratung starten</Link>

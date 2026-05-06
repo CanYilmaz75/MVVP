@@ -1,5 +1,20 @@
 # 06_IMPLEMENTATION_RUNBOOK.md
 
+## Current Build Notes
+
+Last updated: 2026-05-06.
+
+The project is already initialized and contains an active German CAREVO application. Do not restart from scaffolding. Continue from the existing Next.js/Supabase architecture and preserve the historical English source under `English/`.
+
+Current active areas:
+- protected app shell and dashboard
+- consultation list, creation and workspace
+- SIS workspace and persistence
+- templates, exports, settings, team and billing surfaces
+- Supabase migrations through `0011_fix_signup_trigger_care_setting.sql`
+- tests under `tests/`
+- design direction documented in `carevo-design-philosophy.md`
+
 ## Goal
 
 Execute the build in a practical order so the final system works end to end without architectural drift.
@@ -153,6 +168,17 @@ Document:
 - how to start dev server
 - how to test export flow
 - how to simulate AI provider errors
+
+Current local commands:
+
+```bash
+npm install
+npm run dev
+npm run build
+npm run typecheck
+npm run lint
+npm test
+```
 
 ---
 

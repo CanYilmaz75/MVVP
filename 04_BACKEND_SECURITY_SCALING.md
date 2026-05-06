@@ -1,5 +1,18 @@
 # 04_BACKEND_SECURITY_SCALING.md
 
+## Current Backend State
+
+Last updated: 2026-05-06.
+
+The root app now contains concrete service and route boundaries for consultations, audio, transcription, note generation/editing, validation, approval, exports, SIS extraction, templates, team management, billing, jobs and auth signout/signup.
+
+Recent database/security additions:
+- `organisation.care_setting` separates care facilities from medical practices.
+- care protocols constrain consultation workflows by organisation type.
+- SIS data persists in versioned tenant-scoped tables.
+- signup trigger behavior was hardened for care-setting defaults.
+- production care-boundary migrations document the separation between nursing/care workflows and medical treatment workflows.
+
 ## Objective
 
 Implement a backend that is reliable, secure, tenant-aware, and ready for MVP pilots.
@@ -287,6 +300,11 @@ Audit these actions:
 - note_approved
 - note_exported
 - post_approval_edit if allowed
+- sis_extracted
+- sis_saved
+- team_member_invited
+- team_member_role_changed
+- subscription_changed
 
 Audit entry payload should be concise and structured.
 

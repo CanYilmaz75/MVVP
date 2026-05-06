@@ -4,540 +4,467 @@ import Link from "next/link";
 import {
   ArrowRight,
   BadgeCheck,
-  CheckCircle2,
+  Check,
   ChevronRight,
+  ClipboardCheck,
+  FileAudio,
+  FileText,
   LockKeyhole,
   Menu,
-  MessageSquareText,
-  Quote,
+  Mic,
   ShieldCheck,
-  Users
+  Sparkles,
+  Workflow
 } from "lucide-react";
 
-import { LogoMark } from "@/components/shared/logo";
+import { CarevoWordmark } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "CAREVO | Dokumentation fuer die Pflege- und Versorgungsindustrie",
+  title: "CAREVO | KI-Dokumentation fuer Pflege und Versorgung",
   description:
-    "CAREVO reduziert Dokumentationsaufwand in der Pflege- und Versorgungsindustrie mit deutschsprachigen Entwuerfen, klaren Freigaben und auditierbaren Schritten."
+    "CAREVO erstellt pruefbare Dokumentationsentwuerfe aus Audio, Kontext und SIS-Informationen fuer Pflege- und Versorgungsteams."
 };
 
 const navigation: Array<{ label: string; href: `#${string}` | Route }> = [
-  { label: "Kunden", href: "#kunden" },
-  { label: "Preise", href: "/preise" as Route },
-  { label: "Stimmen", href: "#stimmen" },
-  { label: "Sicherheit", href: "#sicherheit" }
+  { label: "Produkt", href: "#produkt" },
+  { label: "Workflow", href: "#workflow" },
+  { label: "Sicherheit", href: "#sicherheit" },
+  { label: "Preise", href: "/preise" as Route }
 ];
 
-const logoSlots = [
-  { name: "Pflegedienst", subline: "Logo-Slot fuer Pilotpartner" },
-  { name: "Seniorenresidenz", subline: "Logo-Slot fuer Referenzkunde" },
-  { name: "Klinikverbund", subline: "Logo-Slot fuer Pilotprogramm" },
-  { name: "Pflegegruppe", subline: "Logo-Slot fuer SIS-Einsatz" },
-  { name: "Versorgungsnetzwerk", subline: "Logo-Slot fuer spaeteren Rollout" },
-  { name: "Traegergruppe", subline: "Logo-Slot fuer Erfolgsstory" }
+const proofPoints = [
+  { value: "Audio", label: "zu strukturiertem Entwurf" },
+  { value: "SIS", label: "sprach- und textgestuetzt" },
+  { value: "Review", label: "vor jeder Freigabe" },
+  { value: "Export", label: "erst nach Abschluss" }
 ];
 
-const useCases = [
-  "Beratungsdokumentation",
-  "Freigabeprozesse",
-  "Entwuerfe nach Audio",
-  "SIS-nahe Strukturierung",
-  "Exportfaehige Notizen",
-  "Auditierbare Schritte"
-];
-
-const featuredQuote = {
-  quote:
-    "Hier kann spaeter die erste starke Kundenstimme stehen: etwa aus einem Pflegedienst, einer Einrichtung oder einem Traeger, der CAREVO fuer weniger Nachdokumentation und schnellere Freigaben einsetzt.",
-  author: "Name nach Freigabe",
-  role: "Einrichtungsleitung, PDL oder Bereichsverantwortung",
-  organisation: "Pilotkunde"
-};
-
-const testimonials = [
+const workflowSteps = [
   {
-    quote:
-      "Vorbereiteter Testimonial-Slot fuer eine Einrichtung, die kuerzer bis zur finalen Dokumentation kommt und weniger Medienbruch im Alltag erlebt.",
-    author: "Name nach Freigabe",
-    role: "Einrichtungsleitung",
-    organisation: "Pflegeeinrichtung"
+    title: "Aufnehmen oder hochladen",
+    description: "Audio im Browser aufnehmen, Datei hochladen oder ergaenzenden Kontext erfassen.",
+    icon: FileAudio
   },
   {
-    quote:
-      "Vorbereiteter Testimonial-Slot fuer einen Traeger oder Verbund, der einen ruhigeren Ablauf zwischen Erfassung, Entwurf und Freigabe beschreiben will.",
-    author: "Name nach Freigabe",
-    role: "Regionalleitung oder Operations",
-    organisation: "Traegergruppe"
+    title: "Entwurf erzeugen",
+    description: "Transkript, Notiz und SIS-Felder werden als bearbeitbarer Entwurf vorbereitet.",
+    icon: Sparkles
   },
   {
-    quote:
-      "Vorbereiteter Testimonial-Slot fuer Pflege oder ambulante Versorgung, wenn die ersten echten Aussagen zur SIS-Nutzung vorliegen.",
-    author: "Name nach Freigabe",
-    role: "Fachkraft oder PDL",
-    organisation: "Ambulanter Dienst"
+    title: "Pruefen und freigeben",
+    description: "Offene Punkte pruefen, Text anpassen und den Stand explizit freigeben.",
+    icon: ClipboardCheck
+  },
+  {
+    title: "Exportieren",
+    description: "Freigegebene Inhalte kopieren oder als PDF fuer die Weitergabe erzeugen.",
+    icon: FileText
   }
 ];
 
-const storyCards = [
+const productFeatures = [
   {
-    title: "Pilotpartner aus der Pflegeeinrichtung",
-    description: "Slot fuer eine spaetere Fallstudie zu schnellerer Pruefung, kuerzerer Nachdokumentation und hoeherer Routine im Alltag."
+    title: "Beratungsdokumentation",
+    description:
+      "Audio, Transkript und Zusatztexte laufen in einem Arbeitsbereich zusammen. Der Entwurf bleibt editierbar.",
+    points: ["Browser-Aufnahme oder Upload", "strukturierte Entwurfsnotiz", "Bearbeitung per Text oder Sprache"],
+    icon: Mic
   },
   {
-    title: "Pilotpartner aus dem Traegerverbund",
-    description: "Slot fuer eine spaetere Story zu Teamkoordination, geringerem Reibungsverlust und klareren Freigabeschritten."
+    title: "SIS-Unterstuetzung",
+    description:
+      "Pflegegespraeche werden in Themenfelder, Ressourcen, Risiken und Massnahmen vorsortiert.",
+    points: ["sechs SIS-Themenfelder", "Risiko- und Review-Hinweise", "kopierbare Zusammenfassung"],
+    icon: Workflow
   },
   {
-    title: "SIS oder Pflegeeinsatz",
-    description: "Slot fuer eine spaetere Referenz zur sprachgestuetzten Strukturierung in dokumentationsintensiven Versorgungsszenarien."
+    title: "Team- und Exportfluss",
+    description:
+      "Dashboard, Vorlagen und Exporte zeigen, was offen ist, was freigegeben wurde und was weitergegeben werden kann.",
+    points: ["offene Entwuerfe sichtbar", "Freigabe vor Export", "Exportverlauf fuer Nachvollziehbarkeit"],
+    icon: BadgeCheck
   }
 ];
 
-const securityCards = [
+const securityItems = [
   {
     title: "Geschuetzte Bereiche",
-    description: "Die App trennt oeffentliche Einstiege von geschuetzten Arbeitsbereichen fuer dokumentationsrelevante Inhalte."
+    description: "Dokumentationsdaten liegen hinter Login, Organisation und geschuetzten App-Bereichen.",
+    icon: ShieldCheck
   },
   {
     title: "Private Dateiwege",
-    description: "Audio und Exporte sind fuer kontrollierte Speicherung und kurze Zugriffe ausgelegt, nicht fuer offene Streuwege."
+    description: "Audio-Uploads und Exporte sind auf kontrollierte Speicherung und begrenzte Zugriffe ausgelegt.",
+    icon: LockKeyhole
   },
   {
     title: "Auditierbare Schritte",
-    description: "Erstellung, Bearbeitung, Freigabe und Export sind auf Nachvollziehbarkeit ausgelegt."
+    description: "Erstellung, Bearbeitung, Freigabe und Export sind als nachvollziehbare Schritte angelegt.",
+    icon: BadgeCheck
   },
   {
-    title: "Explizite Freigabe",
-    description: "CAREVO erzeugt Entwuerfe, finalisiert aber nicht autonom. Die Verantwortung bleibt beim Team."
+    title: "Menschliche Freigabe",
+    description: "CAREVO erstellt Entwuerfe. Die finale Verantwortung bleibt sichtbar beim Team.",
+    icon: Check
   }
 ];
-
-const footerColumns = {
-  produkt: [
-    { label: "Zur App", href: "/dashboard" },
-    { label: "Kunden", href: "#kunden" },
-    { label: "Preise", href: "/preise" },
-    { label: "Sicherheit", href: "#sicherheit" }
-  ],
-  rechtliches: [
-    { label: "Impressum", href: "/impressum" },
-    { label: "Datenschutz", href: "/datenschutz" }
-  ],
-  social: [
-    { label: "LinkedIn", href: null, note: "Profil-URL vor Go-live hinterlegen" },
-    { label: "X / Twitter", href: null, note: "Profil-URL vor Go-live hinterlegen" },
-    { label: "Instagram", href: null, note: "Profil-URL vor Go-live hinterlegen" }
-  ]
-} as const;
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return <p className="text-xs font-semibold uppercase tracking-normal text-muted-foreground">{children}</p>;
 }
 
-export default function HomePage() {
+function ProductMockup() {
+  const transcriptLines = [
+    "Bewohnerin berichtet ueber unsicheren Transfer am Morgen.",
+    "Tochter nennt neue Stolpersituation im Bad.",
+    "Pflegekraft ergaenzt: Rollator wird im Zimmer genutzt."
+  ];
+
   return (
-    <main
-      className="min-h-screen bg-background text-foreground"
-    >
-      <div className="border-b border-border bg-secondary">
-        <div className="mx-auto flex max-w-7xl items-center justify-center px-4 py-3 text-center text-sm text-secondary-foreground sm:px-8 lg:px-12 xl:px-20">
-          CAREVO ist fuer die Pflege- und Versorgungsindustrie gebaut: ruhig im Auftritt, klar in der Verantwortung.
+    <div className="rounded-lg border border-border bg-card p-3 shadow-subtle">
+      <div className="rounded-lg border border-border bg-[#F4F4F6]">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0A0A0F] text-white">
+              <Mic className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Pflegeberatung / SIS</p>
+              <p className="text-xs text-muted-foreground">Audio bereit zur Strukturierung</p>
+            </div>
+          </div>
+          <div className="hidden items-center gap-2 rounded-lg border border-border bg-white px-3 py-2 text-xs font-medium text-secondary-foreground sm:flex">
+            <span className="h-2 w-2 rounded-full bg-[#1E6B72]" />
+            Review offen
+          </div>
+        </div>
+
+        <div className="grid gap-0 lg:grid-cols-[0.85fr_1.15fr]">
+          <div className="border-b border-border bg-white p-5 lg:border-b-0 lg:border-r">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase text-muted-foreground">Transkript</p>
+              <span className="rounded-lg bg-[#F4F4F6] px-2 py-1 text-xs text-secondary-foreground">03:42</span>
+            </div>
+            <div className="mt-5 space-y-4">
+              {transcriptLines.map((line, index) => (
+                <div key={line} className="flex gap-3">
+                  <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-border text-xs text-muted-foreground">
+                    {index + 1}
+                  </div>
+                  <p className="text-sm leading-6 text-secondary-foreground">{line}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 border-t border-border pt-4">
+              <p className="text-xs font-semibold uppercase text-muted-foreground">Naechster Schritt</p>
+              <p className="mt-2 text-sm font-medium text-foreground">Entwurf generieren und offene Punkte pruefen</p>
+            </div>
+          </div>
+
+          <div className="p-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-lg border border-border bg-white p-4">
+                <p className="text-xs font-semibold uppercase text-muted-foreground">Notizentwurf</p>
+                <h3 className="mt-3 text-lg font-semibold text-foreground">Transfer und Wohnumfeld</h3>
+                <div className="mt-4 space-y-2">
+                  <div className="h-2 rounded-full bg-[#D8E7E9]" />
+                  <div className="h-2 w-10/12 rounded-full bg-[#E8E8EC]" />
+                  <div className="h-2 w-8/12 rounded-full bg-[#E8E8EC]" />
+                </div>
+              </div>
+              <div className="rounded-lg border border-border bg-white p-4">
+                <p className="text-xs font-semibold uppercase text-muted-foreground">SIS-Feld</p>
+                <h3 className="mt-3 text-lg font-semibold text-foreground">Mobilitaet</h3>
+                <p className="mt-3 text-sm leading-6 text-secondary-foreground">
+                  Ressourcen vorhanden, Hilfsmittel pruefen, Bad-Situation klaeren.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-lg border border-border bg-white p-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">Review</p>
+                  <p className="mt-2 text-sm text-secondary-foreground">2 offene Hinweise vor Freigabe</p>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs text-secondary-foreground sm:min-w-56">
+                  <span className="rounded-lg border border-border px-3 py-2">Validieren</span>
+                  <span className="rounded-lg border border-border px-3 py-2">Freigeben</span>
+                  <span className="rounded-lg border border-border px-3 py-2">Kopieren</span>
+                  <span className="rounded-lg border border-border px-3 py-2">PDF</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+    </div>
+  );
+}
 
-      <div className="carevo-container">
-        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border py-5 sm:py-6">
+export default function HomePage() {
+  return (
+    <main className="min-h-screen bg-white text-foreground">
+      <div className="bg-white">
+        <div className="carevo-container flex min-h-16 items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-3">
-            <LogoMark className="bg-primary text-primary-foreground" />
-            <div>
-              <p className="text-sm font-semibold tracking-normal text-foreground">CAREVO</p>
-              <p className="text-xs text-muted-foreground">Pflege & Versorgung</p>
-            </div>
+            <CarevoWordmark subline="" />
           </Link>
 
-          <nav className="hidden items-center gap-2 md:flex">
-            {navigation.map((item) => (
+          <nav className="hidden items-center gap-1 md:flex">
+            {navigation.map((item) =>
               item.href.startsWith("/") ? (
-                <Link key={item.label} href={item.href} className="flex min-h-11 items-center justify-center rounded-lg px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="flex min-h-11 items-center rounded-lg px-3 text-sm text-secondary-foreground transition-colors hover:bg-white hover:text-foreground"
+                >
                   {item.label}
                 </Link>
               ) : (
-                <a key={item.label} href={item.href} className="flex min-h-11 items-center justify-center rounded-lg px-3 py-3 text-sm text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className="flex min-h-11 items-center rounded-lg px-3 text-sm text-secondary-foreground transition-colors hover:bg-white hover:text-foreground"
+                >
                   {item.label}
                 </a>
               )
-            ))}
+            )}
           </nav>
 
-          <div className="flex items-center gap-3">
-            <Button asChild variant="ghost" className="hidden text-secondary-foreground hover:bg-transparent hover:text-foreground sm:inline-flex">
-              <Link href="/demo-buchen">Demo buchen</Link>
-            </Button>
-            <Button asChild className="px-4">
+          <div className="hidden items-center gap-3 sm:flex">
+            <Button asChild variant="ghost" className="hover:bg-white">
               <Link href="/dashboard">Zur App</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/demo-buchen">Demo buchen</Link>
             </Button>
           </div>
 
-          <details className="group order-3 w-full border-t border-border pt-4 md:hidden">
-            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between rounded-lg border border-border bg-card px-4 text-sm font-semibold text-foreground transition-colors hover:bg-secondary [&::-webkit-details-marker]:hidden">
-              <span>Menü</span>
-              <Menu className="h-5 w-5 stroke-[1.5] text-muted-foreground transition-transform group-open:rotate-90" />
+          <details className="group md:hidden">
+            <summary className="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-lg border border-border bg-white [&::-webkit-details-marker]:hidden">
+              <Menu className="h-5 w-5 text-secondary-foreground" />
             </summary>
-            <div className="mt-2 rounded-lg border border-border bg-card p-2">
+            <div className="absolute left-4 right-4 z-20 mt-3 rounded-lg border border-border bg-white p-2 shadow-subtle">
               {navigation.map((item) =>
                 item.href.startsWith("/") ? (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="flex min-h-12 items-center rounded-lg px-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                  >
+                  <Link key={item.label} href={item.href} className="flex min-h-11 items-center rounded-lg px-3 text-sm">
                     {item.label}
                   </Link>
                 ) : (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    className="flex min-h-12 items-center rounded-lg px-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                  >
+                  <a key={item.label} href={item.href} className="flex min-h-11 items-center rounded-lg px-3 text-sm">
                     {item.label}
                   </a>
                 )
               )}
+              <div className="mt-2 grid gap-2 pt-2">
+                <Button asChild variant="outline">
+                  <Link href="/dashboard">Zur App</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/demo-buchen">Demo buchen</Link>
+                </Button>
+              </div>
             </div>
           </details>
-        </header>
+        </div>
+      </div>
 
-        <section className="border-b border-border py-20 sm:py-24">
-          <div className="mx-auto max-w-4xl text-center">
-            <Eyebrow>Pflege & Versorgung</Eyebrow>
-            <h1
-              className="mt-6 carevo-h1"
-            >
-              Weniger Aufwand.
-              <span className="block">Mehr Zeit fuer Versorgung.</span>
+      <section className="carevo-container bg-white py-20 text-center sm:py-28 lg:py-32">
+        <div className="mx-auto max-w-4xl">
+            <h1 className="mx-auto max-w-3xl text-[36px] font-bold leading-tight text-foreground sm:text-[48px] lg:text-[56px]">
+              Ihr KI-Assistent fuer weniger Dokumentation.
             </h1>
-            <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-secondary-foreground sm:text-xl">
-              CAREVO hilft Einrichtungen, Diensten und Traegern, schneller von Audio und Kontext zu einer pruefbaren,
-              deutschsprachigen Dokumentation zu kommen. Mit klaren Freigaben, auditierbaren Schritten und einem
-              ruhigen Produktfluss.
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-secondary-foreground sm:text-lg">
+              CAREVO verwandelt Pflegegespraeche, Audio und Kontext in pruefbare Entwuerfe. So bleibt mehr Zeit fuer
+              Versorgung, Abstimmung und Freigabe.
             </p>
-            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Button asChild size="lg" className="h-12 px-7">
-                <Link href="/dashboard">
-                  Zur App
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Button asChild size="lg" className="px-7">
+                <Link href="/demo-buchen">
+                  Demo buchen
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="ghost"
-                className="h-12 rounded-lg border border-border px-7 text-foreground hover:bg-secondary"
-              >
-                <Link href="/demo-buchen">Demo</Link>
+              <Button asChild size="lg" variant="outline" className="px-7">
+                <Link href="/dashboard">Zur App</Link>
               </Button>
             </div>
-          </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="border-b border-border py-10">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl">
-              <Eyebrow>Vorbereitet fuer Logos und Pilotpartner</Eyebrow>
-              <p className="mt-3 text-base leading-7 text-secondary-foreground">
-                Die Struktur ist bewusst wie eine echte Customer Wall angelegt, damit spaetere Referenzen direkt an
-                den richtigen Stellen sitzen.
-              </p>
-            </div>
-            <a href="#stimmen" className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
-              Zu den Kundenstimmen
-              <ChevronRight className="h-4 w-4" />
-            </a>
-          </div>
-
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {logoSlots.map((slot) => (
-              <div key={slot.name} className="rounded-lg border border-border bg-card px-5 py-6">
-                <div className="flex h-12 items-center justify-center rounded-lg border border-dashed border-border text-sm font-medium text-muted-foreground">
-                  {slot.name}
-                </div>
-                <p className="mt-3 text-sm text-muted-foreground">{slot.subline}</p>
+      <section className="bg-[#F4F4F6] py-10 sm:py-12">
+        <div className="carevo-container">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {proofPoints.map((item) => (
+              <div key={item.value}>
+                <p className="text-3xl font-semibold text-foreground">{item.value}</p>
+                <p className="mt-2 text-sm leading-6 text-secondary-foreground">{item.label}</p>
               </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section id="kunden" className="grid gap-12 border-b border-border py-20 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
-          <div className="max-w-xl">
-            <Eyebrow>Kunden</Eyebrow>
-            <h2
-              className="mt-5 carevo-h2"
-            >
-              CAREVO ist fuer Teams gebaut, die unter hohem Dokumentationsdruck arbeiten.
-            </h2>
+      <section id="workflow" className="carevo-container bg-white py-16 sm:py-20">
+        <div className="grid gap-12 lg:grid-cols-[0.75fr_1.25fr]">
+          <div>
+            <Eyebrow>Workflow</Eyebrow>
+            <h2 className="mt-5 carevo-h2">Vier Schritte, keine Show.</h2>
             <p className="mt-5 text-lg leading-8 text-secondary-foreground">
-              Nicht fuer Demo-Effekte, sondern fuer Pflegeeinrichtungen, ambulante Dienste, Traeger und
-              Versorgungsteams, die einen klaren Weg von der Aufnahme bis zur Freigabe brauchen.
+              Die Startseite zeigt jetzt den Kern des Produkts: erfassen, strukturieren, pruefen, weitergeben.
             </p>
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              {useCases.map((item) => (
-                <div key={item} className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm text-secondary-foreground">
-                  <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-                  {item}
+          </div>
+          <div className="grid gap-8 sm:grid-cols-2">
+            {workflowSteps.map((step) => {
+              const Icon = step.icon;
+              return (
+                <div key={step.title}>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#F4F4F6]">
+                    <Icon className="h-5 w-5 text-[#1E6B72]" />
+                  </div>
+                  <h3 className="mt-4 text-xl font-semibold text-foreground">{step.title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-secondary-foreground">{step.description}</p>
                 </div>
-              ))}
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section id="produkt" className="carevo-container bg-white py-16 sm:py-20">
+        <div className="grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
+          <ProductMockup />
+          <div>
+            <Eyebrow>Produkt im Ablauf</Eyebrow>
+            <h2 className="mt-5 carevo-h2">Die wichtigen Flaechen zuerst.</h2>
+            <div className="mt-8 space-y-8">
+              {productFeatures.map((feature) => {
+                const Icon = feature.icon;
+                return (
+                  <div key={feature.title}>
+                    <div className="flex items-center gap-3">
+                      <Icon className="h-5 w-5 text-[#1E6B72]" />
+                      <h3 className="text-xl font-semibold text-foreground">{feature.title}</h3>
+                    </div>
+                    <p className="mt-3 text-base leading-7 text-secondary-foreground">{feature.description}</p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {feature.points.map((point) => (
+                        <span key={point} className="rounded-lg bg-[#F4F4F6] px-3 py-2 text-xs font-medium text-secondary-foreground">
+                          {point}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
+        </div>
+      </section>
 
-          <Card className="rounded-lg border-border bg-card shadow-none">
-            <CardContent className="p-8 sm:p-10">
-              <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Quote className="h-5 w-5" />
-              </div>
-              <p className="mt-8 text-2xl leading-[1.5] tracking-normal text-foreground">
-                {featuredQuote.quote}
-              </p>
-              <div className="mt-10 border-t border-border pt-6">
-                <p className="font-semibold text-foreground">{featuredQuote.author}</p>
-                <p className="mt-1 text-sm text-secondary-foreground">{featuredQuote.role}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{featuredQuote.organisation}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
-        <section id="stimmen" className="border-b border-border py-20">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl">
-              <Eyebrow>Stimmen</Eyebrow>
-              <h2
-                className="mt-5 carevo-h2"
-              >
-                Vorbereitet fuer echte Aussagen aus der Pflege- und Versorgungsindustrie.
-              </h2>
-            </div>
-            <p className="max-w-xl text-base leading-7 text-secondary-foreground">
-              Statt erfundener Testimonials stehen hier bewusst Slots, die spaeter mit freigegebenen Kundenstimmen
-              gefuellt werden koennen.
+      <section id="sicherheit" className="carevo-container bg-white py-16 sm:py-20">
+        <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <Eyebrow>Sicherheit & Kontrolle</Eyebrow>
+            <h2 className="mt-5 carevo-h2">Kontrolle bleibt im Workflow sichtbar.</h2>
+            <p className="mt-5 text-lg leading-8 text-secondary-foreground">
+              CAREVO macht keine Zertifizierungsversprechen auf der Startseite. Gezeigt werden die Kontrollpunkte, die
+              bereits im Produkt angelegt sind.
             </p>
           </div>
-
-          <div className="mt-10 grid gap-5 lg:grid-cols-3">
-            {testimonials.map((item) => (
-              <Card key={item.organisation} className="rounded-lg border-border bg-card shadow-none">
-                <CardContent className="p-7">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary">
-                    <Quote className="h-5 w-5 text-secondary-foreground" />
+          <div className="space-y-4">
+            {securityItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.title} className="grid gap-4 py-2 sm:grid-cols-[auto_1fr]">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-card">
+                    <Icon className="h-5 w-5 text-[#1E6B72]" />
                   </div>
-                  <p className="mt-6 text-lg leading-8 text-foreground">{item.quote}</p>
-                  <div className="mt-8 border-t border-border pt-5">
-                    <p className="font-semibold text-foreground">{item.author}</p>
-                    <p className="mt-1 text-sm text-secondary-foreground">{item.role}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">{item.organisation}</p>
+                  <div>
+                    <h3 className="text-xl font-semibold text-foreground">{item.title}</h3>
+                    <p className="mt-2 text-sm leading-7 text-secondary-foreground">{item.description}</p>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                </div>
+              );
+            })}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="border-b border-border py-20">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl">
-              <Eyebrow>Realer Nutzen</Eyebrow>
-              <h2
-                className="mt-5 carevo-h2"
-              >
-                Die besten Referenzen sind keine Claims, sondern spaetere Kundengeschichten.
-              </h2>
-            </div>
-            <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
-              Produkt oeffnen
+      <section className="carevo-container bg-white py-16 sm:py-20">
+        <div className="grid gap-8 rounded-lg border border-border bg-card p-7 sm:p-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+          <div>
+            <Eyebrow>Referenzen</Eyebrow>
+            <h2 className="mt-5 text-3xl font-semibold leading-tight text-foreground sm:text-5xl">
+              Eine gute Referenz reicht, wenn sie echt ist.
+            </h2>
+          </div>
+          <div className="lg:pl-8">
+            <p className="text-xl leading-8 text-foreground">
+              Bis freigegebene Kundenaussagen vorliegen, bleibt dieser Bereich knapp. Keine erfundenen Stimmen, keine
+              Logo-Wand, keine kuenstliche Beweisfuehrung.
+            </p>
+            <Link href="/demo-buchen" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-foreground">
+              Demo-Gespraech planen
               <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
+        </div>
+      </section>
 
-          <div className="mt-10 grid gap-5 lg:grid-cols-3">
-            {storyCards.map((card) => (
-              <div key={card.title} className="rounded-lg border border-border bg-card p-7">
-                <div className="h-48 rounded-lg border border-border bg-secondary" />
-                <h3 className="mt-6 text-2xl font-semibold tracking-normal text-foreground">{card.title}</h3>
-                <p className="mt-4 text-base leading-7 text-secondary-foreground">{card.description}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section id="sicherheit" className="border-b border-border py-20">
+      <section className="carevo-container bg-white py-16 sm:py-20">
+        <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
           <div className="max-w-3xl">
-            <Eyebrow>Sicherheit</Eyebrow>
-            <h2
-              className="mt-5 carevo-h2"
-            >
-              Sicherheits- und Kontrollprinzipien, die B2B-Kaeufer sofort einordnen koennen.
-            </h2>
+            <Eyebrow>Starten</Eyebrow>
+            <h2 className="mt-5 carevo-h2">CAREVO im echten Ablauf pruefen.</h2>
             <p className="mt-5 text-lg leading-8 text-secondary-foreground">
-              CAREVO kommuniziert Sicherheit bewusst nicht als Marketingfolie, sondern als Produktverhalten: klar,
-              konkret und nachvollziehbar.
+              Demo buchen, Workflow ansehen, mit eigenen Dokumentationsfaellen bewerten.
             </p>
           </div>
-
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {securityCards.map((card) => (
-              <div key={card.title} className="rounded-lg border border-border bg-card p-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary">
-                  {card.title === "Geschuetzte Bereiche" ? (
-                    <ShieldCheck className="h-5 w-5 text-secondary-foreground" />
-                  ) : card.title === "Private Dateiwege" ? (
-                    <LockKeyhole className="h-5 w-5 text-secondary-foreground" />
-                  ) : card.title === "Auditierbare Schritte" ? (
-                    <BadgeCheck className="h-5 w-5 text-secondary-foreground" />
-                  ) : (
-                    <CheckCircle2 className="h-5 w-5 text-secondary-foreground" />
-                  )}
-                </div>
-                <h3 className="mt-6 text-xl font-semibold text-foreground">{card.title}</h3>
-                <p className="mt-4 text-sm leading-7 text-secondary-foreground">{card.description}</p>
-              </div>
-            ))}
+          <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
+            <Button asChild size="lg" className="px-7">
+              <Link href="/demo-buchen">Demo buchen</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="px-7">
+              <Link href="/dashboard">Zur App</Link>
+            </Button>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="py-20">
-          <div className="rounded-lg border border-border bg-card px-8 py-10 sm:px-10">
-            <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-1 text-sm text-secondary-foreground">
-                <BadgeCheck className="h-4 w-4" />
-                Transparent statt ueberverkauft
-              </div>
-              <h2
-                className="mt-5 carevo-h2"
-              >
-                Gute Gesundheitssoftware verkauft nicht nur Tempo, sondern Verantwortung.
-              </h2>
-              <p className="mt-5 text-lg leading-8 text-secondary-foreground">
-                CAREVO ist fuer sensible Dokumentationsablaeufe, klare Freigaben und nachvollziehbare Produktentscheidungen
-                gebaut. Genau das sollte man auf der Startseite spueren.
-              </p>
-            </div>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <Button asChild size="lg" className="h-12 px-7">
-                <Link href="/dashboard">
-                  Zur App
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <div className="flex flex-col gap-3 sm:items-end">
-                <Button asChild variant="ghost" className="rounded-lg border border-border px-5 text-foreground hover:bg-secondary">
-                  <Link href="/demo-buchen">Demo buchen</Link>
-                </Button>
-                <p className="max-w-xl text-sm leading-6 text-muted-foreground">
-                  Hinweis: Die Seite beschreibt den aktuellen MVP und seine Sicherheitsprinzipien. Sie ist bewusst keine
-                  Aussage ueber formale MDR-, ISO- oder vollstaendige DSGVO-Zertifizierung.
-                </p>
-              </div>
-            </div>
+      <footer className="bg-white">
+        <div className="carevo-container grid gap-8 py-10 sm:grid-cols-2 lg:grid-cols-[1fr_auto_auto]">
+          <div className="max-w-md">
+            <CarevoWordmark subline="" />
+            <p className="mt-5 text-sm leading-6 text-secondary-foreground">
+              Ruhige KI-Dokumentation fuer sensible Pflege- und Versorgungsablaeufe.
+            </p>
           </div>
-        </section>
-
-        <footer className="border-t border-border py-10">
-          <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr]">
-            <div className="max-w-md">
-              <div className="flex items-center gap-3">
-                <LogoMark className="bg-primary text-primary-foreground" />
-                <div>
-                  <p className="text-sm font-semibold tracking-normal text-foreground">CAREVO</p>
-                  <p className="text-sm text-secondary-foreground">Pflege & Versorgung</p>
-                </div>
-              </div>
-              <p className="mt-5 text-sm leading-6 text-secondary-foreground">
-                Eigenstaendig fuer CAREVO gestaltet, mit einer ruhigeren Enterprise-Informationsarchitektur fuer
-                deutsche B2B-Gesundheitssoftware.
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-normal text-muted-foreground">Produkt</p>
-              <div className="mt-4 space-y-3">
-                {footerColumns.produkt.map((link) => (
-                  link.href.startsWith("#") ? (
-                    <a key={link.label} href={link.href} className="flex items-center gap-2 text-sm text-secondary-foreground transition-colors hover:text-foreground">
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                      {link.label}
-                    </a>
-                  ) : (
-                    <Link key={link.label} href={link.href} className="flex items-center gap-2 text-sm text-secondary-foreground transition-colors hover:text-foreground">
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                      {link.label}
-                    </Link>
-                  )
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-normal text-muted-foreground">Rechtliches</p>
-              <div className="mt-4 space-y-3">
-                {footerColumns.rechtliches.map((link) => (
-                  <Link key={link.label} href={link.href} className="flex items-center gap-2 text-sm text-secondary-foreground transition-colors hover:text-foreground">
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-normal text-muted-foreground">Social & Kontakt</p>
-              <div className="mt-4 space-y-3">
-                {footerColumns.social.map((link) =>
-                  link.href ? (
-                    <a
-                      key={link.label}
-                      href={link.href}
-                      className="flex items-start gap-2 text-sm text-secondary-foreground transition-colors hover:text-foreground"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <Users className="mt-0.5 h-4 w-4 text-muted-foreground" />
-                      <span>{link.label}</span>
-                    </a>
-                  ) : (
-                    <div key={link.label} className="flex items-start gap-2 text-sm text-muted-foreground">
-                      <MessageSquareText className="mt-0.5 h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p>{link.label}</p>
-                        <p className="text-xs text-muted-foreground">{link.note}</p>
-                      </div>
-                    </div>
-                  )
-                )}
-              </div>
-            </div>
+          <div className="space-y-3 text-sm text-secondary-foreground">
+            <Link href="/preise" className="block transition-colors hover:text-foreground">
+              Preise
+            </Link>
+            <Link href="/demo-buchen" className="block transition-colors hover:text-foreground">
+              Demo buchen
+            </Link>
+            <Link href="/dashboard" className="block transition-colors hover:text-foreground">
+              Zur App
+            </Link>
           </div>
-
-          <div className="mt-10 flex flex-col gap-3 border-t border-border py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-            <p>© 2026 CAREVO. Alle Rechte vorbehalten.</p>
-            <div className="flex flex-wrap items-center gap-4">
-              <Link href="/impressum" className="transition-colors hover:text-foreground">
-                Impressum
-              </Link>
-              <Link href="/datenschutz" className="transition-colors hover:text-foreground">
-                Datenschutz
-              </Link>
-              <Link href="/dashboard" className="transition-colors hover:text-foreground">
-                Zur App
-              </Link>
-              <Link href="/demo-buchen" className="transition-colors hover:text-foreground">
-                Demo buchen
-              </Link>
-            </div>
+          <div className="space-y-3 text-sm text-secondary-foreground">
+            <Link href="/impressum" className="block transition-colors hover:text-foreground">
+              Impressum
+            </Link>
+            <Link href="/datenschutz" className="block transition-colors hover:text-foreground">
+              Datenschutz
+            </Link>
+            <p className="text-muted-foreground">© 2026 CAREVO</p>
           </div>
-        </footer>
-      </div>
+        </div>
+      </footer>
     </main>
   );
 }

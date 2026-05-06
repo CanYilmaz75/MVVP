@@ -1,7 +1,7 @@
 # CAREVO Compliance Pack
 
 Status: operational draft  
-Scope: CAREVO MVP repository as of 2026-04-28  
+Scope: CAREVO MVP repository as of 2026-05-06
 Owner: to be assigned  
 Review cadence: quarterly and before production launch
 
@@ -36,6 +36,8 @@ They provide the management-system structure, control inventory, review routines
 ## Current Technical Evidence
 
 - Tenant isolation and RLS: `supabase/migrations/0001_initial.sql`, `supabase/migrations/0005_pilot_hardening.sql`
+- Care-setting separation and care boundaries: `supabase/migrations/0008_organisation_care_setting.sql`, `supabase/migrations/0009_consultation_care_protocols.sql`, `supabase/migrations/0010_production_care_boundaries.sql`
+- Signup trigger hardening: `supabase/migrations/0011_fix_signup_trigger_care_setting.sql`
 - Private audio and PDF storage: `supabase/migrations/0001_initial.sql`, `src/server/services/audio-service.ts`, `src/server/services/export-service.ts`
 - Audit logging: `src/server/services/audit-service.ts`
 - AI feature gating and rate limits: `src/lib/ai-guard.ts`, `src/lib/rate-limit.ts`

@@ -4,6 +4,8 @@ Date: 2026-04-28
 Scope: local production build, automated contract tests, static security checks, HTTP smoke tests  
 Result: technical release gates passed locally; staging UAT with real users/providers remains required before go-live with real health data.
 
+Update note 2026-05-06: product and documentation were refreshed after newer app changes covering care-setting separation, SIS workflow, team/billing surfaces and UI background/design polish. The evidence below remains the last recorded local gate execution and should be rerun before the next release decision.
+
 ## Build And Static Gates
 
 | Gate | Result | Evidence |

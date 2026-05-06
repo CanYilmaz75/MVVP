@@ -13,6 +13,7 @@ Die Funktion folgt drei Leitgedanken:
 ## Route und Einstieg
 
 Die Arbeitsflaeche ist unter `/sis` erreichbar und im geschuetzten App-Bereich ueber die Sidebar verlinkt.
+Die Navigation zeigt SIS nur fuer Organisationen mit `care_setting = "care_facility"`. Medizinische Praxen bleiben im Praxisberatungsfluss, damit Pflege- und medizinische Behandlungsdokumentation fachlich getrennt bleiben.
 
 Die Seite besteht aus:
 
@@ -95,6 +96,7 @@ Aktueller Stand:
 
 - SIS-Daten werden nach der Extraktion in `sis_assessments` gespeichert.
 - Jede Speicherung erzeugt eine unveraenderliche Version in `sis_assessment_versions`.
+- SIS ist an Pflegeeinrichtungen gebunden und wird in der App-Navigation nicht fuer medizinische Praxen angeboten.
 - Audio-Aufnahme, Audio-Upload und Transkription nutzen die bestehende Beratungspipeline.
 - Eine SIS-Sitzung wird als Beratung mit `consultationType: "sis"` angelegt.
 - Die API `POST /api/sis/extract` strukturiert Transkript und Live-Notizen in SIS-Felder und persistiert das Ergebnis.

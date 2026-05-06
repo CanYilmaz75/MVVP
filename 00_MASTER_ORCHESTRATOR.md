@@ -1,8 +1,20 @@
 # CAREVO AI – MASTER DELIVERY ORCHESTRATOR
 
+## Current Repository State
+
+Last updated: 2026-05-06.
+
+The active root repository already contains a German CAREVO application built with Next.js 15, TypeScript, Tailwind, Supabase and service-layer boundaries. Historical English materials are retained under `English/`.
+
+Current product scope has expanded from physician-only documentation to two organisation settings:
+- `medical_practice`: practice consultation documentation.
+- `care_facility`: care consultation documentation plus SIS workflow.
+
+Continue from the existing implementation. Do not re-scaffold the project or overwrite the active German app structure.
+
 ## Purpose
 
-Build a **production-grade MVP** for **CAREVO**, an ambient clinical documentation platform for physicians.
+Build a **production-grade MVP** for **CAREVO**, a German clinical and care documentation platform for controlled pilot environments.
 The application must support this end-to-end flow:
 
 1. authenticated clinician signs in
@@ -38,6 +50,7 @@ It is **not** a claim of MDR certification or full medical-device compliance.
 - audio file upload and secure storage
 - speech-to-text transcription
 - structured note generation
+- SIS extraction and versioned SIS persistence for care-facility workflows
 - note editing via text
 - note editing via voice instruction
 - validation and warning surface
@@ -63,7 +76,7 @@ It is **not** a claim of MDR certification or full medical-device compliance.
 ## Required Technology Stack
 
 ### Frontend
-- Next.js 14+ App Router
+- Next.js 15 App Router
 - TypeScript
 - Tailwind CSS
 - ShadCN UI

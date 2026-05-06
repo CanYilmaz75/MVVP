@@ -1,6 +1,8 @@
 # CAREVO Design Philosophy — "Klinische Stille"
 
-## Das Bewegung
+Stand: 2026-05-06.
+
+## Die Bewegung
 
 **Klinische Stille** — ein Designprinzip, das die Würde medizinischer Dokumentation verkörpert. Kein Lärm. Keine Ablenkung. Nur das Wesentliche, präzise platziert, mit der Sorgfalt eines Chirurgen.
 
@@ -11,6 +13,8 @@ Weißraum ist nicht Leere, sondern Verantwortung. Jedes Element sitzt in seinem 
 ## Farbe und Materie
 
 Die Palette entsteht aus der Welt der Pflege: Tiefschwarz für Verantwortung (`#0A0A0F`), reines Weiß für Klarheit (`#FFFFFF`), ein einzelner kühler Akzentton — ein gedämpftes medizinisches Blaugrün (`#1E6B72`) — für Orientierung und Interaktion. Warmgrau (`#F4F4F6`, `#E8E8EC`, `#9B9BA8`) strukturieren ohne Dominanz. Kein Dekor. Farbe als Informationssystem.
+
+Der aktive App-Shell-Hintergrund ist durchgehend `#F4F4F6`. Header, Hauptbereich, Dashboard und geschuetzte Shell sollen diese Flaeche konsistent halten, damit beim Scrollen oder zwischen Routen keine weissen Brueche entstehen.
 
 ## Typografie und Hierarchie
 

@@ -1,5 +1,15 @@
 # 05_AI_CLINICAL_QUALITY_SPEC.md
 
+## Current AI Scope
+
+Last updated: 2026-05-06.
+
+The active app includes two AI-assisted documentation paths:
+- SOAP-style consultation note drafting for practice and care consultation workflows.
+- SIS extraction from transcript plus live notes for care-facility workflows.
+
+Both paths must stay review-first: AI structures documentation, but professional users remain responsible for clinical or nursing judgement.
+
 ## Objective
 
 Implement the AI layer so that it is materially safer, more consistent, and more clinically usable than a naive “transcript to summary” pipeline.
@@ -49,6 +59,9 @@ It must never present itself as autonomous clinical judgment.
 
 Primary note type for MVP:
 SOAP
+
+Care workflow extension:
+SIS extraction for the German Strukturmodell, persisted separately from SOAP notes.
 
 ### Canonical JSON schema
 ```json
@@ -425,3 +438,4 @@ A correct AI implementation for this MVP is:
 It is not:
 - an autonomous medical decision engine
 - a substitute for clinician judgment
+- a substitute for professional nursing assessment in SIS workflows

@@ -1,5 +1,19 @@
 # README_AGENT_HANDOFF.md
 
+## Current Repository State
+
+Last updated: 2026-05-06.
+
+This repository is no longer an empty implementation package. It contains an active German CAREVO app in the root and `src/`, with historical English source/docs under `English/`.
+
+Before changing code, inspect the current implementation and preserve:
+- organisation `care_setting` separation between `care_facility` and `medical_practice`
+- SIS workflow and versioned persistence
+- protected shell/navigation behavior
+- Supabase migrations through `0011_fix_signup_trigger_care_setting.sql`
+- team/billing/signup hardening
+- the "Klinische Stille" UI direction and app background `#F4F4F6`
+
 ## Purpose
 
 This file is the **entry point for any AI coding agent** (Claude Code, Codex, Cursor).
@@ -34,7 +48,7 @@ Read in this exact order:
 5. 05_AI_CLINICAL_QUALITY_SPEC.md  
 6. 03_UI_UX_SPEC.md  
 7. ENV_AND_SECRETS_SETUP.md  
-8. SUPABASE_SQL_MIGRATIONS.sql  
+8. supabase/migrations/*.sql
 9. CODEGEN_EXECUTION_PROMPT.md  
 10. 06_IMPLEMENTATION_RUNBOOK.md  
 11. 07_QA_UAT_CHECKLIST.md  
@@ -48,10 +62,10 @@ Do not skip any file.
 You must build in this sequence:
 
 ### Phase 1 – Foundation
-- Project setup (Next.js, TypeScript, Tailwind, ShadCN)
-- Folder structure
-- Env validation
-- Dependency setup
+- Verify existing Next.js, TypeScript, Tailwind and ShadCN setup
+- Read current folder structure before adding abstractions
+- Verify env validation and `.env.example`
+- Preserve existing dependency choices unless a change is necessary
 
 ---
 

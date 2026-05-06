@@ -1,5 +1,20 @@
 # 02_SYSTEM_ARCHITECTURE.md
 
+## Current Implementation Snapshot
+
+Last updated: 2026-05-06.
+
+The active root application is a German Next.js 15 App Router codebase. Historical English source and documentation are retained under `English/`.
+
+Implemented architectural surfaces include:
+- protected app shell with adaptive navigation for `care_facility` and `medical_practice`
+- Supabase auth/profile/organisation resolution with care-setting normalization
+- consultation services, audio signed-upload flow, transcription, note generation, validation, approval and export service boundaries
+- SIS service, SIS extraction API and versioned SIS persistence
+- team, signup and billing services
+- rate-limit, feature-flag, logging, AI guard and PDF rendering utilities
+- migrations through `supabase/migrations/0011_fix_signup_trigger_care_setting.sql`
+
 ## Architectural Principles
 
 1. protect patient-related data by default
@@ -39,6 +54,7 @@ Server-side modules:
 Supabase Postgres:
 - organisations
 - profiles
+- team memberships / invites / billing records where enabled
 - consultations
 - audio_assets
 - transcripts
@@ -51,6 +67,8 @@ Supabase Postgres:
 - audit_logs
 - feature_flags
 - jobs
+- sis_assessments
+- sis_assessment_versions
 
 Supabase Storage:
 - consultation-audio
@@ -68,7 +86,7 @@ This allows future provider replacement without rewriting product logic.
 ## Core Domain Entities
 
 ### Organisation
-Tenant boundary.
+Tenant boundary. Includes `care_setting` so organisation-level UX and workflow boundaries can distinguish care facilities from medical practices.
 
 ### Profile
 Authenticated user profile linked to organisation.
@@ -102,6 +120,12 @@ Immutable event log.
 
 ### Job
 Tracks long-running processing.
+
+### SisAssessment
+Current structured SIS state for a care-related consultation.
+
+### SisAssessmentVersion
+Immutable SIS snapshot created on each save or extraction.
 
 ---
 
@@ -361,6 +385,13 @@ Tracks long-running processing.
 - /api/templates
 - /api/exports
 - /api/settings
+- /api/sis/extract
+- /api/consultations/:id/sis
+- /api/consultations/:id/additional-texts
+- /api/team
+- /api/team/invites
+- /api/billing/subscription
+- /api/billing/enterprise-request
 
 ---
 
@@ -396,3 +427,4 @@ Even in MVP:
 - no audio path leakage in client-rendered tables
 - audit every export and approval
 - RLS everywhere for tenant data
+- keep care-facility and medical-practice domains separated through organisation `care_setting`, care protocols and route-level authorization checks

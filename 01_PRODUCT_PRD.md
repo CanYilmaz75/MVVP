@@ -4,7 +4,24 @@
 CAREVO AI
 
 ## Product Category
-Ambient clinical documentation platform for physician workflows.
+German-language documentation platform for ambulatory medical and care workflows.
+
+## Current Product State
+
+Last updated: 2026-05-06.
+
+CAREVO is no longer scoped only to office-based physician workflows. The active product now supports two organisation settings:
+- `medical_practice`: practice-oriented consultations and medical documentation.
+- `care_facility`: care consultation workflows plus SIS documentation.
+
+The active German application includes:
+- authenticated dashboard and protected shell
+- consultation creation, list, workspace and export paths
+- AI-backed transcript, note, validation and voice-edit service boundaries
+- SIS workspace with audio/text-assisted extraction and versioned persistence
+- templates, settings, team and billing management surfaces
+- organisation-aware navigation labels and care-specific SIS visibility
+- a calm neutral UI system based on the "Klinische Stille" design direction
 
 ## Problem Statement
 
@@ -23,7 +40,7 @@ The product goal is to convert conversations into structured draft medical notes
 ## Primary User
 
 ### Primary persona
-Office-based physician or outpatient clinician.
+Office-based physician, outpatient clinician, care facility lead or qualified care professional.
 
 Attributes:
 - time-constrained
@@ -33,13 +50,17 @@ Attributes:
 - values clarity, speed, and trust
 
 ### Secondary persona
-Medical practice admin or clinical operations lead who evaluates workflow efficiency and adoption.
+Medical practice admin, care organisation admin, billing owner or clinical operations lead who evaluates workflow efficiency and adoption.
 
 ---
 
 ## Primary Job To Be Done
 
 “After a consultation, help me get to a clinically usable draft note quickly, without losing control over what gets documented.”
+
+For care organisations:
+
+“After a care conversation, help me structure the person’s perspective, risks, resources and measures into a reviewable SIS without turning documentation into a rigid checklist.”
 
 ---
 
@@ -218,6 +239,8 @@ Enable a clinician to go from consultation audio to a reviewable SOAP draft note
 - AI outputs are drafts, not final autonomous records
 - no direct clinical recommendation engine
 - no autonomous treatment plans beyond summarization of spoken content
+- medical-practice and care-facility flows must stay separated in product copy, navigation and domain boundaries
+- SIS supports the care process and does not replace professional nursing assessment
 
 ---
 

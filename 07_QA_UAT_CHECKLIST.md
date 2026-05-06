@@ -7,6 +7,7 @@ Use this checklist before considering the MVP pilot-ready.
 ## Execution Status
 
 Last local technical execution: 2026-04-28.
+Documentation refreshed for product/app changes on 2026-05-06; run the technical gates again before using this checklist as a release artifact.
 
 Evidence is documented in `08_QA_UAT_EXECUTION_REPORT.md`.
 Local build, typecheck, lint, automated tests, and HTTP smoke tests passed.
@@ -40,6 +41,19 @@ Items that require real users, real provider keys, Supabase staging data, or cli
 - [ ] consultation appears in lists
 - [ ] consultation status updates correctly
 - [ ] consultation workspace loads full aggregate state
+- [ ] care-facility organisations see `Pflegeberatung`
+- [ ] medical-practice organisations see `Praxisberatung`
+- [ ] care protocols are constrained by organisation care setting
+
+## SIS Flow
+
+- [ ] SIS route is visible for care-facility organisations
+- [ ] SIS route is hidden or blocked for medical-practice organisations
+- [ ] SIS can create or reuse a consultation session
+- [ ] SIS audio/text extraction fills the six SIS topic fields
+- [ ] SIS risk assessment persists only relevant deep-dive risks
+- [ ] SIS save creates a new immutable version
+- [ ] SIS summary copy works without exposing unrelated consultation data
 
 ---
 
@@ -144,6 +158,8 @@ Items that require real users, real provider keys, Supabase staging data, or cli
 ## UX
 
 - [ ] dashboard has clear empty state
+- [ ] dashboard background remains consistently `#F4F4F6`
+- [ ] protected shell, header and main area avoid white background gaps during scroll
 - [ ] workspace has loading states
 - [ ] error states have retry path
 - [ ] disabled buttons reflect true state
